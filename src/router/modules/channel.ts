@@ -151,5 +151,24 @@ export default [
         }
       }
     ]
+  },
+  {
+    path: "/myProfile",
+    redirect: "/channel/profile",
+    meta: {
+      icon: "ri:contacts-book-line",
+      title: "我的资料",
+      rank: 0.8
+    },
+    children: [
+      {
+        path: "/channel/profile",
+        name: "ChannelProfile",
+        component: () => import("@/views/channel/profile/index.vue"),
+        meta: {
+          title: "我的资料"
+        }
+      }
+    ]
   }
 ] satisfies RouteConfigsTable[];
