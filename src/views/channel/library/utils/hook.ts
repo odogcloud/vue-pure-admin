@@ -1,0 +1,99 @@
+import dayjs from "dayjs";
+import { message } from "@/utils/message";
+import { getSongList } from "@/api/channel";
+import type { PaginationProps } from "@pureadmin/table";
+import { onMounted, reactive, ref } from "vue";
+
+export function useLibrary() {
+  const form = reactive({
+    name: "",
+    status: ""
+  });
+  const dataList = ref([]);
+  const loading = ref(true);
+  const pagination = reactive<PaginationProps>({
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  });
+  const columns: TableColumnList = [
+    { label: "作品", prop: "name", minWidth: 150 },
+    { label: "词作者", prop: "lyricist", minWidth: 110 },
+    { label: "曲作者", prop: "composer", minWidth: 110 },
+    { label: "歌曲价格", prop: "price", minWidth: 90 },
+    { label: "确权联系人", prop: "contact", minWidth: 160 },
+    { label: "自定义标签", prop: "tags", minWidth: 100 },
+    { label: "歌曲推荐理由", prop: "reason", minWidth: 150 },
+    {
+      label: "是否收录歌单",
+      prop: "inPlaylist",
+      minWidth: 110,
+      formatter: ({ inPlaylist }) => (inPlaylist ? "已收录" : "未收录")
+    },
+    { label: "状态", slot: "status", minWidth: 90 },
+    {
+      label: "加入时间",
+      prop: "createTime",
+      minWidth: 170,
+      formatter: ({ createTime }) =>
+        dayjs(createTime).format("YYYY-MM-DD HH:mm:ss")
+    },
+    { label: "操作", fixed: "right", width: 220, slot: "operation" }
+  ];
+
+  async function onSearch() {
+    loading.value = true;
+    try {
+      const { data } = await getSongList({
+        ...form,
+        pageSize: pagination.pageSize,
+        currentPage: pagination.currentPage
+      });
+      dataList.value = data.list;
+      pagination.total = data.total;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function handleSearch() {
+    pagination.currentPage = 1;
+    onSearch();
+  }
+
+  function resetForm(formEl) {
+    if (!formEl) return;
+    formEl.resetFields();
+    handleSearch();
+  }
+
+  function handleSizeChange(val: number) {
+    pagination.pageSize = val;
+    onSearch();
+  }
+
+  function handleCurrentChange(val: number) {
+    pagination.currentPage = val;
+    onSearch();
+  }
+
+  function handleTodo(name: string) {
+    message(`${name}：功能开发中`, { type: "info" });
+  }
+
+  onMounted(onSearch);
+
+  return {
+    form,
+    loading,
+    columns,
+    dataList,
+    pagination,
+    handleSearch,
+    resetForm,
+    handleTodo,
+    handleSizeChange,
+    handleCurrentChange
+  };
+}
