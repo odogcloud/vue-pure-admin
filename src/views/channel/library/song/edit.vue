@@ -4,7 +4,12 @@ import { useRoute, useRouter } from "vue-router";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import UploadFilled from "~icons/ep/upload-filled";
 import { message } from "@/utils/message";
-import { getSongDetail, getTagOptions, updateSong } from "@/api/channel";
+import {
+  getSongDetail,
+  getTagOptions,
+  updateSong,
+  uploadFile
+} from "@/api/channel";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import TagPicker from "../components/TagPicker.vue";
 
@@ -16,6 +21,7 @@ const route = useRoute();
 const router = useRouter();
 const formRef = ref();
 const saving = ref(false);
+const uploading = ref(false);
 const loading = ref(true);
 const songTags = ref<string[]>([]);
 const defaultReason = ref("");
@@ -50,14 +56,26 @@ function restoreReason() {
   form.reason = defaultReason.value;
 }
 
-function handleVideo(uploadFile) {
-  const file: File = uploadFile.raw;
+async function handleVideo(item) {
+  const file: File = item.raw;
   if (!file.type.startsWith("video/")) {
     message("请上传视频文件", { type: "error" });
     return;
   }
-  form.videoUrl = URL.createObjectURL(file);
-  form.videoName = file.name;
+  uploading.value = true;
+  try {
+    const { code, message: msg, data } = await uploadFile(file, "video");
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
+    }
+    form.videoUrl = data.url;
+    form.videoName = data.name;
+  } catch {
+    message("上传失败，请重试", { type: "error" });
+  } finally {
+    uploading.value = false;
+  }
 }
 
 function removeVideo() {
@@ -172,6 +190,7 @@ onMounted(async () => {
       <el-form-item label="上传视频" label-position="top">
         <div class="w-full">
           <el-upload
+            v-loading="uploading"
             action="#"
             drag
             accept="video/*"
@@ -199,7 +218,12 @@ onMounted(async () => {
 
       <el-form-item label-width="0">
         <el-button @click="goBack">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSubmit">
+        <el-button
+          type="primary"
+          :loading="saving"
+          :disabled="uploading"
+          @click="handleSubmit"
+        >
           确认
         </el-button>
       </el-form-item>

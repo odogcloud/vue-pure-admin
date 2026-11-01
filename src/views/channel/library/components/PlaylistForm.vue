@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { message } from "@/utils/message";
+import { uploadFile } from "@/api/channel";
 import TagPicker from "./TagPicker.vue";
 
 const props = defineProps<{
@@ -19,6 +20,7 @@ const props = defineProps<{
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 const recents = ref(props.recentTags);
+const uploading = ref(false);
 const rules = {
   cover: [{ required: true, message: "请上传歌单封面", trigger: "change" }],
   name: [{ required: true, message: "请输入歌单名称", trigger: "blur" }],
@@ -34,18 +36,26 @@ const rules = {
   reason: [{ required: true, message: "请输入歌单推荐理由", trigger: "blur" }]
 };
 
-function handleCover(uploadFile) {
-  const file: File = uploadFile.raw;
+async function handleCover(item) {
+  const file: File = item.raw;
   if (!file.type.startsWith("image/")) {
     message("请上传图片文件", { type: "error" });
     return;
   }
-  const reader = new FileReader();
-  reader.onload = () => {
-    newFormInline.value.cover = String(reader.result);
+  uploading.value = true;
+  try {
+    const { code, message: msg, data } = await uploadFile(file, "image");
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
+    }
+    newFormInline.value.cover = data.url;
     ruleFormRef.value.validateField("cover");
-  };
-  reader.readAsDataURL(file);
+  } catch {
+    message("上传失败，请重试", { type: "error" });
+  } finally {
+    uploading.value = false;
+  }
 }
 
 function getRef() {
@@ -65,6 +75,7 @@ defineExpose({ getRef });
   >
     <el-form-item label="歌单封面：" prop="cover">
       <el-upload
+        v-loading="uploading"
         action="#"
         accept="image/*"
         :auto-upload="false"

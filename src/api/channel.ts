@@ -82,3 +82,19 @@ export const updatePlaylistSongWeight = (data?: object) =>
 /** 取消收录（支持批量） */
 export const removePlaylistSongs = (data?: object) =>
   post("/channel/playlist-song-remove", data);
+
+/** 上传图片或视频，返回可访问的地址 */
+export const uploadFile = (file: File, kind: "image" | "video") => {
+  const data = new FormData();
+  data.append("file", file);
+  data.append("kind", kind);
+  return http.request<Result<{ url: string; name: string }>>(
+    "post",
+    "/channel/upload",
+    {
+      data,
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 0
+    }
+  );
+};
