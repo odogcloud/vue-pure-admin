@@ -9,6 +9,7 @@ const songs = Array.from({ length: 23 }, (_, index) => ({
   contact: "demo@example.com",
   tags: index % 2 === 0 ? "热门" : "",
   reason: "示例推荐理由",
+  videoUrl: "",
   inPlaylist: index % 3 === 0 ? 1 : 0,
   status: index % 4 === 0 ? 0 : 1,
   createTime: 1767225600000 - index * 86400000
@@ -36,6 +37,20 @@ export default defineFakeRoute([
           currentPage
         }
       };
+    }
+  },
+  {
+    url: "/channel/song-update",
+    method: "post",
+    response: ({ body }) => {
+      const song = songs.find(item => item.id === body.id);
+      if (!song) {
+        return { code: 1, message: "歌曲不存在" };
+      }
+      song.tags = body.tags;
+      song.reason = body.reason;
+      song.videoUrl = body.videoUrl;
+      return { code: 0, message: "操作成功" };
     }
   }
 ]);

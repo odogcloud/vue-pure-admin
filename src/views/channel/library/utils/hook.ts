@@ -1,8 +1,11 @@
 import dayjs from "dayjs";
+import editForm from "../form.vue";
 import { message } from "@/utils/message";
-import { getSongList } from "@/api/channel";
+import { addDialog } from "@/components/ReDialog";
+import { deviceDetection } from "@pureadmin/utils";
+import { getSongList, updateSong } from "@/api/channel";
 import type { PaginationProps } from "@pureadmin/table";
-import { onMounted, reactive, ref } from "vue";
+import { h, onMounted, reactive, ref } from "vue";
 
 export function useLibrary() {
   const form = reactive({
@@ -11,6 +14,7 @@ export function useLibrary() {
   });
   const dataList = ref([]);
   const loading = ref(true);
+  const editFormRef = ref();
   const pagination = reactive<PaginationProps>({
     total: 0,
     pageSize: 10,
@@ -82,6 +86,40 @@ export function useLibrary() {
     message(`${name}：功能开发中`, { type: "info" });
   }
 
+  function openEdit(row) {
+    addDialog({
+      title: "编辑曲库歌曲",
+      props: {
+        formInline: {
+          id: row.id,
+          name: row.name,
+          tags: row.tags ?? "",
+          reason: row.reason ?? "",
+          videoUrl: row.videoUrl ?? ""
+        }
+      },
+      width: "40%",
+      draggable: true,
+      fullscreen: deviceDetection(),
+      fullscreenIcon: true,
+      closeOnClickModal: false,
+      contentRenderer: () =>
+        h(editForm, { ref: editFormRef, formInline: null }),
+      beforeSure: async (done, { options }) => {
+        const { code, message: msg } = await updateSong(
+          options.props.formInline
+        );
+        if (code !== 0) {
+          message(msg, { type: "error" });
+          return;
+        }
+        message("保存成功", { type: "success" });
+        done();
+        onSearch();
+      }
+    });
+  }
+
   onMounted(onSearch);
 
   return {
@@ -93,6 +131,7 @@ export function useLibrary() {
     handleSearch,
     resetForm,
     handleTodo,
+    openEdit,
     handleSizeChange,
     handleCurrentChange
   };

@@ -23,6 +23,7 @@ const {
   handleSearch,
   resetForm,
   handleTodo,
+  openEdit,
   handleSizeChange,
   handleCurrentChange
 } = useLibrary();
@@ -111,7 +112,7 @@ const {
               type="primary"
               :size="size"
               :icon="useRenderIcon(EditPen)"
-              @click="handleTodo(`编辑 ${row.name}`)"
+              @click="openEdit(row)"
             >
               编辑
             </el-button>
