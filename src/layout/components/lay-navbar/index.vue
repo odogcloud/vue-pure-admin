@@ -2,6 +2,7 @@
 import { useNav } from "@/layout/hooks/useNav";
 import LaySearch from "../lay-search/index.vue";
 import LayNotice from "../lay-notice/index.vue";
+import ChannelBar from "./ChannelBar.vue";
 import LayNavMix from "../lay-sidebar/NavMix.vue";
 import { useTranslationLang } from "@/layout/hooks/useTranslationLang";
 import LaySidebarFullScreen from "../lay-sidebar/components/SidebarFullScreen.vue";
@@ -45,6 +46,8 @@ const { t, locale, translationCh, translationEn } = useTranslationLang();
       v-if="layout !== 'mix' && device !== 'mobile'"
       class="breadcrumb-container"
     />
+
+    <ChannelBar v-if="layout === 'vertical' && device !== 'mobile'" />
 
     <LayNavMix v-if="layout === 'mix'" />
 

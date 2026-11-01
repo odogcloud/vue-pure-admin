@@ -13,6 +13,7 @@ import { stringify } from "qs";
 import { message } from "@/utils/message";
 import { $t, transformI18n } from "@/plugins/i18n";
 import { getToken, formatToken } from "@/utils/auth";
+import { getCurrentChannelId } from "@/utils/channel";
 import { useUserStoreHook } from "@/store/modules/user";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
@@ -65,6 +66,8 @@ class PureHttp {
   private httpInterceptorsRequest(): void {
     PureHttp.axiosInstance.interceptors.request.use(
       async (config: PureHttpRequestConfig): Promise<any> => {
+        const channelId = getCurrentChannelId();
+        if (channelId) config.headers["X-Channel-Id"] = String(channelId);
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
         if (typeof config.beforeRequestCallback === "function") {
           config.beforeRequestCallback(config);
