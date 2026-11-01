@@ -9,9 +9,12 @@ export type SongFormData = {
   lyricist: string;
   composer: string;
   released: number;
+  cover: string;
   audioUrl: string;
   lyrics: string;
 };
+
+const COVER_SIZE = 1500;
 
 const props = defineProps<{ formInline: SongFormData }>();
 
@@ -28,6 +31,48 @@ const rules = {
     }
   ]
 };
+
+/** 读取图片的实际尺寸 */
+function readImageSize(file: File) {
+  return new Promise<{ width: number; height: number }>((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("invalid image"));
+    };
+    image.src = url;
+  });
+}
+
+async function handleCover(item) {
+  const file: File = item.raw;
+  uploading.value = true;
+  try {
+    const { width, height } = await readImageSize(file);
+    if (width !== COVER_SIZE || height !== COVER_SIZE) {
+      message(
+        `封面尺寸应为 ${COVER_SIZE}x${COVER_SIZE}，当前为 ${width}x${height}`,
+        { type: "error" }
+      );
+      return;
+    }
+    const { code, message: msg, data } = await uploadFile(file, "image");
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
+    }
+    form.value.cover = data.url;
+  } catch {
+    message("图片无法读取或上传失败，请重试", { type: "error" });
+  } finally {
+    uploading.value = false;
+  }
+}
 
 async function handleAudio(item) {
   const file: File = item.raw;
@@ -55,6 +100,40 @@ defineExpose({ getRef, uploading });
 
 <template>
   <el-form ref="ruleFormRef" :model="form" :rules="rules" label-width="90px">
+    <el-form-item label="歌曲封面">
+      <div class="flex items-center gap-3">
+        <el-image
+          v-if="form.cover"
+          :src="form.cover"
+          fit="cover"
+          class="size-20 rounded-sm"
+        />
+        <div>
+          <div class="flex items-center gap-2">
+            <el-upload
+              action="#"
+              accept=".png,.jpg,.jpeg,.webp"
+              :auto-upload="false"
+              :show-file-list="false"
+              :on-change="handleCover"
+            >
+              <el-button type="primary" plain>上传封面</el-button>
+            </el-upload>
+            <el-button
+              v-if="form.cover"
+              link
+              type="danger"
+              @click="form.cover = ''"
+            >
+              删除
+            </el-button>
+          </div>
+          <div class="text-xs text-gray-500 mt-1">
+            选填，尺寸 1500x1500，支持 png、jpg、webp，不超过 10MB
+          </div>
+        </div>
+      </div>
+    </el-form-item>
     <el-form-item label="作品名称" prop="name">
       <el-input
         v-model="form.name"

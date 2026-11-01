@@ -48,6 +48,7 @@ const columns: TableColumnList = [
     selectable: row => row.reviewStatus === "pending"
   },
   { label: "所属频道", prop: "channelName", minWidth: 120 },
+  { label: "封面", slot: "cover", width: 80 },
   { label: "歌曲名称", prop: "name", minWidth: 140 },
   { label: "词作者", prop: "lyricist", minWidth: 100 },
   { label: "曲作者", prop: "composer", minWidth: 100 },
@@ -193,6 +194,17 @@ onMounted(async () => {
       @page-size-change="handleSizeChange"
       @page-current-change="handleCurrentChange"
     >
+      <template #cover="{ row }">
+        <el-image
+          v-if="row.cover"
+          :src="row.cover"
+          :preview-src-list="[row.cover]"
+          preview-teleported
+          fit="cover"
+          class="size-12 rounded-sm"
+        />
+        <span v-else>-</span>
+      </template>
       <template #audio="{ row }">
         <audio :src="row.audioUrl" controls preload="none" class="w-full" />
       </template>

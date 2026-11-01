@@ -166,6 +166,7 @@ function openSongForm(row?) {
         lyricist: row?.lyricist ?? "",
         composer: row?.composer ?? "",
         released: row?.released ?? 0,
+        cover: row?.cover ?? "",
         audioUrl: row?.audioUrl ?? "",
         lyrics: row?.lyrics ?? ""
       }

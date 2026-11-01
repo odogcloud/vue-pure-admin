@@ -10,6 +10,14 @@ const cooperationTips = [
 
 <template>
   <div class="text-left leading-6">
+    <el-image
+      v-if="row.cover"
+      :src="row.cover"
+      :preview-src-list="[row.cover]"
+      preview-teleported
+      fit="cover"
+      class="size-14 rounded-sm"
+    />
     <el-tooltip :content="row.name" placement="top">
       <el-link type="primary" underline="never" class="song-cell__name">
         {{ row.name }}
