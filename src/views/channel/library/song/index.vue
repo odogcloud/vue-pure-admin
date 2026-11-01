@@ -7,7 +7,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import Search from "~icons/ep/search";
 import { message } from "@/utils/message";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog, closeDialog } from "@/components/ReDialog";
 import { hasPerms } from "@/utils/auth";
 import {
   companyApproveSongs,
@@ -38,7 +38,7 @@ import ContactCell from "../components/ContactCell.vue";
 import ImportForm from "../components/ImportForm.vue";
 import SongForm from "../components/SongForm.vue";
 import ReviewProgress from "../components/ReviewProgress.vue";
-import { sureCancelButtons, sureOnlyButtons } from "../utils/dialog";
+import { sureOnlyButtons } from "../utils/dialog";
 
 const formRef = ref();
 const importFormRef = ref();
@@ -152,13 +152,72 @@ async function removeSongs(rows: any[]) {
 
 const errorText = (error: any) => error?.response?.data?.message ?? "操作失败";
 
+/** 保存歌曲，submit 为 true 时保存后立即提交审核，成功后关闭弹框 */
+function saveSong(options, index: number, submit: boolean) {
+  if (songFormRef.value.uploading) {
+    message("文件正在上传，请稍候", { type: "warning" });
+    return;
+  }
+  const data = options.props.formInline as { id?: number; audioUrl: string };
+  if (submit && !data.audioUrl) {
+    message("提交审核前请先上传音频", { type: "warning" });
+    return;
+  }
+  songFormRef.value.getRef().validate(async valid => {
+    if (!valid) return;
+    try {
+      const result = data.id
+        ? await updateSongDraft(data)
+        : await createSong(data);
+      if (result.code !== 0) {
+        message(result.message, { type: "error" });
+        return;
+      }
+      // 提交失败后再次点击时不会重复创建
+      if (!data.id) data.id = (result.data as { id: number }).id;
+      if (submit) {
+        const submitted = await submitSongs({ ids: [data.id] });
+        if (submitted.code !== 0) {
+          message(submitted.message, { type: "error" });
+          onSearch();
+          return;
+        }
+      }
+      message(submit ? "已提交审核" : "已保存为草稿，确认后请提交审核", {
+        type: "success"
+      });
+      closeDialog(options, index, { command: "sure" });
+      onSearch();
+    } catch (error) {
+      message(errorText(error), { type: "error" });
+    }
+  });
+}
+
 function openSongForm(row?) {
   addDialog({
     title: row ? "编辑歌曲" : "新增歌曲",
     width: "620px",
     draggable: true,
     closeOnClickModal: false,
-    footerButtons: sureCancelButtons,
+    footerButtons: [
+      {
+        label: "保存并提交审核",
+        type: "primary",
+        btnClick: ({ dialog: { options, index } }) =>
+          saveSong(options, index, true)
+      },
+      {
+        label: "保存草稿",
+        btnClick: ({ dialog: { options, index } }) =>
+          saveSong(options, index, false)
+      },
+      {
+        label: "取 消",
+        btnClick: ({ dialog: { options, index } }) =>
+          closeDialog(options, index, { command: "cancel" })
+      }
+    ],
     props: {
       formInline: {
         id: row?.id,
@@ -171,31 +230,7 @@ function openSongForm(row?) {
         lyrics: row?.lyrics ?? ""
       }
     },
-    contentRenderer: () => h(SongForm, { ref: songFormRef, formInline: null }),
-    beforeSure: (done, { options }) => {
-      if (songFormRef.value.uploading) {
-        message("音频正在上传，请稍候", { type: "warning" });
-        return;
-      }
-      songFormRef.value.getRef().validate(async valid => {
-        if (!valid) return;
-        const data = options.props.formInline as { id?: number };
-        try {
-          const result = data.id
-            ? await updateSongDraft(data)
-            : await createSong(data);
-          if (result.code !== 0) {
-            message(result.message, { type: "error" });
-            return;
-          }
-          message("已保存为草稿，确认后请提交审核", { type: "success" });
-          done();
-          onSearch();
-        } catch (error) {
-          message(errorText(error), { type: "error" });
-        }
-      });
-    }
+    contentRenderer: () => h(SongForm, { ref: songFormRef, formInline: null })
   });
 }
 
@@ -215,7 +250,7 @@ async function submitForReview(rows: any[]) {
     message(
       data.skipped
         ? `已提交 ${data.count} 首，${data.skipped} 首未提交（需要先上传音频或状态不符）`
-        : `已提交 ${data.count} 首歌曲，等待平台审核`,
+        : `已提交 ${data.count} 首歌曲，等待审核`,
       { type: data.skipped ? "warning" : "success" }
     );
     clearSelection();
