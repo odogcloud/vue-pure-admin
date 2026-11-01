@@ -17,7 +17,8 @@ const form = ref(props.formInline);
       :key="group.label"
       class="flex-bc py-2 border-b border-gray-100"
     >
-      <span class="font-bold">{{ group.label }}</span>
+      <!-- el-checkbox-group 的 font-size 为 0，这里需要单独设置 -->
+      <span class="font-bold text-sm/6">{{ group.label }}</span>
       <div>
         <el-checkbox
           v-for="item in group.items"
