@@ -24,6 +24,14 @@ export default {
       }
     },
     {
+      path: "/channel/cooperation",
+      name: "ChannelCooperation",
+      component: () => import("@/views/channel/cooperation/index.vue"),
+      meta: {
+        title: "合作申请"
+      }
+    },
+    {
       path: "/channel/library/edit-song/:id",
       name: "ChannelEditSong",
       component: () => import("@/views/channel/library/song/edit.vue"),
