@@ -15,7 +15,9 @@ const cooperationTips = [
         {{ row.name }}
       </el-link>
     </el-tooltip>
-    <span :class="row.released ? 'text-green-500' : 'text-orange-400'">
+    <span
+      :class="row.released ? 'song-cell__released' : 'song-cell__unreleased'"
+    >
       ({{ row.released ? "已发行" : "未发行" }})
     </span>
     <div>
@@ -36,6 +38,14 @@ const cooperationTips = [
 </template>
 
 <style lang="scss" scoped>
+.song-cell__released {
+  color: var(--el-color-success);
+}
+
+.song-cell__unreleased {
+  color: var(--el-color-danger);
+}
+
 .song-cell__name {
   display: inline-block;
   max-width: 100%;

@@ -72,12 +72,7 @@ const columns: TableColumnList = [
     formatter: ({ price }) => (price ? price.toLocaleString() : "-")
   },
   { label: "推荐权重", prop: "weight", width: 100, sortable: true },
-  {
-    label: "自定义标签",
-    prop: "tags",
-    width: 140,
-    formatter: ({ tags }) => tags?.join("、") || "-"
-  },
+  { label: "自定义标签", slot: "tags", width: 140 },
   {
     label: "歌曲推荐理由",
     prop: "reason",
@@ -348,6 +343,8 @@ onMounted(() => {
       ref="tableRef"
       row-key="id"
       align-whole="left"
+      border
+      stripe
       table-layout="fixed"
       :loading="loading"
       :data="dataList"
@@ -363,6 +360,12 @@ onMounted(() => {
     >
       <template #song="{ row }">
         <SongCell :row="row" />
+      </template>
+      <template #tags="{ row }">
+        <div v-if="row.tags?.length" class="flex flex-wrap gap-1">
+          <el-tag v-for="tag in row.tags" :key="tag">{{ tag }}</el-tag>
+        </div>
+        <span v-else>-</span>
       </template>
       <template #contact="{ row }">
         <ContactCell :row="row" />

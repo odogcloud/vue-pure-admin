@@ -164,6 +164,8 @@ async function handleDelete(row) {
     <pure-table
       row-key="id"
       align-whole="left"
+      border
+      stripe
       table-layout="fixed"
       :loading="loading"
       :data="dataList"

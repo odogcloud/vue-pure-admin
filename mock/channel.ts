@@ -9,7 +9,11 @@ const songs = Array.from({ length: 23 }, (_, index) => ({
   released: index % 5 === 4 ? 0 : 1,
   lyricist: "示例词作者",
   composer: "示例曲作者",
-  cooperationTypes: ["授权", "重制", "改编"].slice(0, (index % 3) + 1),
+  cooperationTypes: [
+    ["授权", "重制", "改编"],
+    ["重制", "改编"],
+    ["转让", "重制", "改编"]
+  ][index % 3],
   price: index % 3 === 1 ? null : (index + 1) * 500,
   submitType: index % 4 === 3 ? "author" : "label",
   contactName: index % 4 === 3 ? "示例作者" : "示例厂牌",
