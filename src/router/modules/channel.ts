@@ -16,6 +16,14 @@ export default {
       }
     },
     {
+      path: "/channel/customer",
+      name: "ChannelCustomer",
+      component: () => import("@/views/channel/customer/index.vue"),
+      meta: {
+        title: "歌曲客户"
+      }
+    },
+    {
       path: "/channel/library/edit-song/:id",
       name: "ChannelEditSong",
       component: () => import("@/views/channel/library/song/edit.vue"),
