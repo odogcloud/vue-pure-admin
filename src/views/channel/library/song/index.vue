@@ -16,6 +16,7 @@ import {
 } from "@/api/channel";
 import { useListPage } from "../utils/list";
 import { useSongActions } from "../utils/actions";
+import { useListenReport } from "../utils/listen";
 import {
   editedOptions,
   inPlaylistOptions,
@@ -60,6 +61,7 @@ const {
   clearSelection
 } = useListPage(form, getSongList);
 const { goEdit, openLyrics, openCollect } = useSongActions();
+const { onAudioPlay, onAudioStop } = useListenReport();
 
 const columns: TableColumnList = [
   { type: "selection", width: 50, label: "勾选列" },
@@ -386,7 +388,14 @@ async function openImport() {
         <ContactCell :row="row" />
       </template>
       <template #audio="{ row }">
-        <audio :src="row.audioUrl" controls preload="none" class="w-full" />
+        <audio
+          :src="row.audioUrl"
+          controls
+          preload="none"
+          class="w-full"
+          @play="onAudioPlay"
+          @pause="onAudioStop(row, $event)"
+        />
       </template>
       <template #lyrics="{ row }">
         <el-button link type="primary" @click="openLyrics(row)">

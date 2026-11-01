@@ -113,5 +113,24 @@ export default [
         }
       }
     ]
+  },
+  {
+    path: "/statistics",
+    redirect: "/channel/statistics",
+    meta: {
+      icon: "ri:bar-chart-2-line",
+      title: "数据统计",
+      rank: 0.6
+    },
+    children: [
+      {
+        path: "/channel/statistics",
+        name: "ChannelStatistics",
+        component: () => import("@/views/channel/statistics/index.vue"),
+        meta: {
+          title: "数据统计"
+        }
+      }
+    ]
   }
 ] satisfies RouteConfigsTable[];

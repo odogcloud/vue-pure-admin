@@ -17,6 +17,7 @@ import {
 } from "@/api/channel";
 import { useListPage } from "../utils/list";
 import { useSongActions } from "../utils/actions";
+import { useListenReport } from "../utils/listen";
 import { releasedOptions, statusOptions, statusText } from "../utils/constants";
 import SongCell from "../components/SongCell.vue";
 import ContactCell from "../components/ContactCell.vue";
@@ -61,6 +62,7 @@ const {
   playlistName.value = data?.playlistName ?? "";
 });
 const { goEdit, openLyrics, openCollect } = useSongActions();
+const { onAudioPlay, onAudioStop } = useListenReport();
 
 const columns: TableColumnList = [
   { type: "selection", width: 50, label: "勾选列" },
@@ -371,7 +373,14 @@ onMounted(() => {
         <ContactCell :row="row" />
       </template>
       <template #audio="{ row }">
-        <audio :src="row.audioUrl" controls preload="none" class="w-full" />
+        <audio
+          :src="row.audioUrl"
+          controls
+          preload="none"
+          class="w-full"
+          @play="onAudioPlay"
+          @pause="onAudioStop(row, $event)"
+        />
       </template>
       <template #lyrics="{ row }">
         <el-button link type="primary" @click="openLyrics(row)">
