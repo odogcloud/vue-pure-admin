@@ -7,6 +7,7 @@ import { useListPage } from "../library/utils/list";
 import { sureCancelButtons } from "../library/utils/dialog";
 import EditForm from "./EditForm.vue";
 import { NOTIFY_TYPES } from "./types";
+import { useAllChannels } from "../library/utils/allChannels";
 
 defineOptions({
   name: "ChannelNotify"
@@ -14,6 +15,8 @@ defineOptions({
 
 const editFormRef = ref();
 const form = reactive({});
+
+const { onLoaded, canOperate, channelColumn } = useAllChannels();
 
 const {
   dataList,
@@ -23,9 +26,10 @@ const {
   handleSizeChange,
   handleCurrentChange,
   refreshAfterRemove
-} = useListPage(form, getNotifyList);
+} = useListPage(form, getNotifyList, onLoaded);
 
 const columns: TableColumnList = [
+  channelColumn,
   { label: "姓名", prop: "name", minWidth: 120 },
   { label: "邮箱", prop: "email", minWidth: 180 },
   { label: "提醒类型", slot: "types", minWidth: 280 },
@@ -108,15 +112,20 @@ async function handleDelete(row) {
         </div>
       </template>
       <template #operation="{ row }">
-        <el-button link type="primary" @click="openDialog(row)">编辑</el-button>
-        <el-popconfirm
-          :title="`确认删除 ${row.name} 吗？`"
-          @confirm="handleDelete(row)"
-        >
-          <template #reference>
-            <el-button link type="danger">删除</el-button>
-          </template>
-        </el-popconfirm>
+        <template v-if="canOperate(row)">
+          <el-button link type="primary" @click="openDialog(row)"
+            >编辑</el-button
+          >
+          <el-popconfirm
+            :title="`确认删除 ${row.name} 吗？`"
+            @confirm="handleDelete(row)"
+          >
+            <template #reference>
+              <el-button link type="danger">删除</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+        <span v-else>-</span>
       </template>
     </pure-table>
   </div>

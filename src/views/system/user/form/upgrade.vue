@@ -31,7 +31,7 @@ defineExpose({ getRef });
     <el-form-item label="升级为">
       <el-select v-model="form.type" class="w-full">
         <el-option
-          v-for="item in CHANNEL_TYPES"
+          v-for="item in CHANNEL_TYPES.filter(type => type.value !== 'artist')"
           :key="item.value"
           v-bind="item"
         />

@@ -18,6 +18,7 @@ import { useListPage } from "../library/utils/list";
 import { sureCancelButtons } from "../library/utils/dialog";
 import AddForm from "./AddForm.vue";
 import EditForm from "./EditForm.vue";
+import { useAllChannels } from "../library/utils/allChannels";
 
 defineOptions({
   name: "ChannelMember"
@@ -41,6 +42,8 @@ const form = reactive({
   status: ""
 });
 
+const { onLoaded, canOperate, channelColumn } = useAllChannels();
+
 const {
   dataList,
   loading,
@@ -51,9 +54,10 @@ const {
   handleSizeChange,
   handleCurrentChange,
   refreshAfterRemove
-} = useListPage(form, getMemberList);
+} = useListPage(form, getMemberList, onLoaded);
 
 const columns: TableColumnList = [
+  channelColumn,
   {
     label: "用户名称",
     prop: "nickname",
@@ -293,18 +297,21 @@ onMounted(loadRoles);
           <span v-if="!row.phone && !row.email">-</span>
         </template>
         <template #operation="{ row }">
-          <template v-if="canWrite">
-            <el-button link type="primary" @click="openEdit(row)">
-              编辑
-            </el-button>
-            <el-popconfirm
-              :title="`确认将 ${row.nickname || row.username} 移出公司吗？`"
-              @confirm="handleRemove(row)"
-            >
-              <template #reference>
-                <el-button link type="danger">移除</el-button>
-              </template>
-            </el-popconfirm>
+          <template v-if="canOperate(row)">
+            <template v-if="canWrite">
+              <el-button link type="primary" @click="openEdit(row)">
+                编辑
+              </el-button>
+              <el-popconfirm
+                :title="`确认将 ${row.nickname || row.username} 移出公司吗？`"
+                @confirm="handleRemove(row)"
+              >
+                <template #reference>
+                  <el-button link type="danger">移除</el-button>
+                </template>
+              </el-popconfirm>
+            </template>
+            <span v-else>-</span>
           </template>
           <span v-else>-</span>
         </template>

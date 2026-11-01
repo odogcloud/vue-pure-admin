@@ -1,4 +1,5 @@
 export const CHANNEL_TYPES = [
   { label: "厂牌", value: "label" },
-  { label: "公司", value: "company" }
+  { label: "公司", value: "company" },
+  { label: "艺人", value: "artist" }
 ];

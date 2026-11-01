@@ -19,6 +19,7 @@ import { useListPage } from "../library/utils/list";
 import { sureCancelButtons } from "../library/utils/dialog";
 import AddForm from "./components/AddForm.vue";
 import EditForm from "./components/EditForm.vue";
+import { useAllChannels } from "../library/utils/allChannels";
 
 const formRef = ref();
 const dialogFormRef = ref();
@@ -30,6 +31,8 @@ const form = reactive({
   permission: "",
   status: ""
 });
+
+const { onLoaded, canOperate, channelColumn } = useAllChannels();
 
 const {
   tableRef,
@@ -44,10 +47,16 @@ const {
   handleCurrentChange,
   handleSelectionChange,
   refreshAfterRemove
-} = useListPage(form, getCustomerList);
+} = useListPage(form, getCustomerList, onLoaded);
 
 const columns: TableColumnList = [
-  { type: "selection", width: 50, label: "勾选列" },
+  channelColumn,
+  {
+    type: "selection",
+    width: 50,
+    label: "勾选列",
+    selectable: row => canOperate(row)
+  },
   { label: "客户名称", slot: "name", minWidth: 130 },
   { label: "客户联系方式", slot: "contact", minWidth: 170 },
   { label: "客户权限", slot: "permission", minWidth: 150 },
@@ -319,17 +328,22 @@ onMounted(loadPlaylists);
         {{ permissionText(row) }}
       </template>
       <template #operation="{ row }">
-        <div class="flex flex-col items-start gap-1">
-          <el-button link type="primary" @click="openEdit(row)">修改</el-button>
-          <el-button
-            link
-            type="primary"
-            class="ml-0!"
-            @click="removeRows([row])"
-          >
-            取消分享
-          </el-button>
-        </div>
+        <template v-if="canOperate(row)">
+          <div class="flex flex-col items-start gap-1">
+            <el-button link type="primary" @click="openEdit(row)"
+              >修改</el-button
+            >
+            <el-button
+              link
+              type="primary"
+              class="ml-0!"
+              @click="removeRows([row])"
+            >
+              取消分享
+            </el-button>
+          </div>
+        </template>
+        <span v-else>-</span>
       </template>
     </pure-table>
   </div>

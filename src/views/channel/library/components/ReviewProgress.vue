@@ -6,6 +6,7 @@ const props = defineProps<{
     reviewStatus: string;
     reviewTime?: string | null;
     rejectReason?: string;
+    channelType?: string;
   };
 }>();
 
@@ -34,10 +35,12 @@ const states = computed<StepState[]>(() => {
 });
 
 const steps = computed(() =>
-  ["提交", "公司审核", "平台审核"].map((label, index) => ({
-    label,
-    state: states.value[index]
-  }))
+  ["提交", "公司审核", "平台审核"]
+    .map((label, index) => ({ label, state: states.value[index] }))
+    // 平台直属艺人没有公司审核
+    .filter(
+      step => props.row.channelType !== "artist" || step.label !== "公司审核"
+    )
 );
 
 const summary = computed(() => {

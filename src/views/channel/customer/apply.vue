@@ -11,6 +11,7 @@ import { getApplicationList, handleApplication } from "@/api/customer";
 import { useListPage } from "../library/utils/list";
 import { sureCancelButtons } from "../library/utils/dialog";
 import HandleForm from "./components/HandleForm.vue";
+import { useAllChannels } from "../library/utils/allChannels";
 
 const formRef = ref();
 const handleFormRef = ref();
@@ -28,6 +29,8 @@ const statusOptions = [
   { label: "已拒绝", value: 2, type: "danger" }
 ] as const;
 
+const { onLoaded, canOperate, channelColumn } = useAllChannels();
+
 const {
   dataList,
   loading,
@@ -37,9 +40,10 @@ const {
   resetForm,
   handleSizeChange,
   handleCurrentChange
-} = useListPage(form, getApplicationList);
+} = useListPage(form, getApplicationList, onLoaded);
 
 const columns: TableColumnList = [
+  channelColumn,
   { label: "客户名称", slot: "name", minWidth: 150 },
   { label: "客户联系方式", slot: "contact", minWidth: 170 },
   {
@@ -209,14 +213,17 @@ async function openHandle(row) {
         </el-tag>
       </template>
       <template #operation="{ row }">
-        <el-button
-          v-if="row.status === 0"
-          link
-          type="primary"
-          @click="openHandle(row)"
-        >
-          处理
-        </el-button>
+        <template v-if="canOperate(row)">
+          <el-button
+            v-if="row.status === 0"
+            link
+            type="primary"
+            @click="openHandle(row)"
+          >
+            处理
+          </el-button>
+          <span v-else>-</span>
+        </template>
         <span v-else>-</span>
       </template>
     </pure-table>

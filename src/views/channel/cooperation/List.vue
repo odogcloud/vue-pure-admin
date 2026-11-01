@@ -13,6 +13,7 @@ import { releasedOptions } from "../library/utils/constants";
 import SongCell from "../library/components/SongCell.vue";
 import ContactCell from "../library/components/ContactCell.vue";
 import NoteForm from "./NoteForm.vue";
+import { useAllChannels } from "../library/utils/allChannels";
 
 const props = defineProps<{ stage: "confirm" | "trade" | "done" }>();
 
@@ -80,6 +81,8 @@ const statusOptions = computed(() =>
 );
 const actions = computed(() => ACTIONS[props.stage]);
 
+const { onLoaded, canOperate, channelColumn } = useAllChannels();
+
 const {
   dataList,
   loading,
@@ -89,9 +92,10 @@ const {
   resetForm,
   handleSizeChange,
   handleCurrentChange
-} = useListPage(form, getCooperationList);
+} = useListPage(form, getCooperationList, onLoaded);
 
 const columns: TableColumnList = [
+  channelColumn,
   { label: "合作申请", slot: "request", width: 170 },
   { label: "客户联系方式", slot: "customer", width: 190 },
   { label: "作品", slot: "song", width: 170 },
@@ -294,21 +298,24 @@ function openAction(row, item) {
         </el-tooltip>
       </template>
       <template #operation="{ row }">
-        <div
-          v-if="row.status === 'pending' && actions.length"
-          class="flex flex-col items-start gap-1"
-        >
-          <el-button
-            v-for="item in actions"
-            :key="item.action"
-            link
-            :type="item.required ? 'danger' : 'primary'"
-            class="ml-0!"
-            @click="openAction(row, item)"
+        <template v-if="canOperate(row)">
+          <div
+            v-if="row.status === 'pending' && actions.length"
+            class="flex flex-col items-start gap-1"
           >
-            {{ item.label }}
-          </el-button>
-        </div>
+            <el-button
+              v-for="item in actions"
+              :key="item.action"
+              link
+              :type="item.required ? 'danger' : 'primary'"
+              class="ml-0!"
+              @click="openAction(row, item)"
+            >
+              {{ item.label }}
+            </el-button>
+          </div>
+          <span v-else>-</span>
+        </template>
         <span v-else>-</span>
       </template>
     </pure-table>

@@ -151,6 +151,12 @@ defineExpose({ getRef });
               :value="item.id"
             />
           </el-select>
+          <div
+            v-if="newFormInline.accountType === 'artist'"
+            class="text-xs text-gray-500 mt-1"
+          >
+            不选择时为平台直属艺人，自动创建个人频道，歌曲直接由平台审核
+          </div>
         </el-form-item>
       </re-col>
       <re-col
