@@ -51,3 +51,26 @@ export const collectSong = (data?: object) => {
     { data }
   );
 };
+
+/** 频道歌单列表 */
+export const getPlaylistList = (data?: object) => {
+  return http.request<ResultTable>("post", "/channel/playlist-list", { data });
+};
+
+/** 新增或编辑频道歌单 */
+export const savePlaylist = (data?: object) => {
+  return http.request<{ code: number; message: string }>(
+    "post",
+    "/channel/playlist-save",
+    { data }
+  );
+};
+
+/** 删除频道歌单 */
+export const deletePlaylist = (data?: object) => {
+  return http.request<{ code: number; message: string }>(
+    "post",
+    "/channel/playlist-delete",
+    { data }
+  );
+};

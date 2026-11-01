@@ -14,6 +14,14 @@ export default {
       meta: {
         title: "曲库管理"
       }
+    },
+    {
+      path: "/channel/playlist",
+      name: "ChannelPlaylist",
+      component: () => import("@/views/channel/playlist/index.vue"),
+      meta: {
+        title: "歌单管理"
+      }
     }
   ]
 } satisfies RouteConfigsTable;
