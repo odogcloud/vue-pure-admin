@@ -31,9 +31,5 @@ allowBuilds:
   core-js: true
   typeit: true
 
-
-
-
-
-
-
+overrides:
+  '@pureadmin/utils': file:vendor/pureadmin/pureadmin-utils-2.6.4.tgz
