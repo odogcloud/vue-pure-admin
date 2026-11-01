@@ -132,5 +132,24 @@ export default [
         }
       }
     ]
+  },
+  {
+    path: "/role",
+    redirect: "/channel/role",
+    meta: {
+      icon: "ri:eye-line",
+      title: "角色管理",
+      rank: 0.7
+    },
+    children: [
+      {
+        path: "/channel/role",
+        name: "ChannelRole",
+        component: () => import("@/views/channel/role/index.vue"),
+        meta: {
+          title: "角色管理"
+        }
+      }
+    ]
   }
 ] satisfies RouteConfigsTable[];

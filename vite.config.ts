@@ -34,6 +34,10 @@ export default async ({ mode }: ConfigEnv): Promise<UserConfigExport> => {
           target: "http://127.0.0.1:3000",
           changeOrigin: true
         },
+        "/role": {
+          target: "http://127.0.0.1:3000",
+          changeOrigin: true
+        },
         "/stats": {
           target: "http://127.0.0.1:3000",
           changeOrigin: true
