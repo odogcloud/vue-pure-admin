@@ -94,5 +94,24 @@ export default [
         }
       }
     ]
+  },
+  {
+    path: "/messmgr",
+    redirect: "/channel/notify",
+    meta: {
+      icon: "ri:message-2-line",
+      title: "通知管理",
+      rank: 0.5
+    },
+    children: [
+      {
+        path: "/channel/notify",
+        name: "ChannelNotify",
+        component: () => import("@/views/channel/notify/index.vue"),
+        meta: {
+          title: "通知管理"
+        }
+      }
+    ]
   }
 ] satisfies RouteConfigsTable[];
