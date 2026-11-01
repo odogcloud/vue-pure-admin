@@ -6,6 +6,7 @@ export {
   ascending,
   filterTree,
   filterNoPermissionTree,
+  filterBusinessMenus,
   formatFlatteningRoutes
 } from "@/router/utils";
 export {

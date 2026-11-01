@@ -16,6 +16,7 @@ import {
   storageLocal,
   isIncludeAllChildren
 } from "@pureadmin/utils";
+import channelRoutes from "./modules/channel";
 import { getConfig } from "@/config";
 import { buildHierarchyTree } from "@/utils/tree";
 import { userKey, type DataInfo } from "@/utils/auth";
@@ -105,6 +106,15 @@ function filterNoPermissionTree(data: RouteComponent[]) {
     (v: any) => v.children && (v.children = filterNoPermissionTree(v.children))
   );
   return filterChildrenTree(newTree);
+}
+
+/** 只有超级管理员能看到模板自带的演示菜单，其他账号只显示业务菜单 */
+function filterBusinessMenus(data: RouteComponent[]) {
+  const permissions =
+    storageLocal().getItem<DataInfo<number>>(userKey)?.permissions ?? [];
+  if (permissions.includes("*:*:*")) return data;
+  const paths = new Set(["/", ...channelRoutes.map(route => route.path)]);
+  return data.filter((route: any) => paths.has(route.path));
 }
 
 /** 通过指定 `key` 获取父级路径集合，默认 `key` 为 `path` */
@@ -432,5 +442,6 @@ export {
   handleAliveRoute,
   formatTwoStageRoutes,
   formatFlatteningRoutes,
-  filterNoPermissionTree
+  filterNoPermissionTree,
+  filterBusinessMenus
 };

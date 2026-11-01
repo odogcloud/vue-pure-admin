@@ -7,6 +7,7 @@ import {
   filterTree,
   constantMenus,
   filterNoPermissionTree,
+  filterBusinessMenus,
   formatFlatteningRoutes
 } from "../utils";
 import { useMultiTagsStoreHook } from "./multiTags";
@@ -25,8 +26,10 @@ export const usePermissionStore = defineStore("pure-permission", {
   actions: {
     /** 组装整体路由生成的菜单 */
     handleWholeMenus(routes: any[]) {
-      this.wholeMenus = filterNoPermissionTree(
-        filterTree(ascending(this.constantMenus.concat(routes)))
+      this.wholeMenus = filterBusinessMenus(
+        filterNoPermissionTree(
+          filterTree(ascending(this.constantMenus.concat(routes)))
+        )
       );
       this.flatteningRoutes = formatFlatteningRoutes(
         this.constantMenus.concat(routes) as any
