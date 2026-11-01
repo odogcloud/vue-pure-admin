@@ -16,11 +16,23 @@ export default {
       }
     },
     {
-      path: "/channel/playlist",
-      name: "ChannelPlaylist",
-      component: () => import("@/views/channel/playlist/index.vue"),
+      path: "/channel/library/edit-song/:id",
+      name: "ChannelEditSong",
+      component: () => import("@/views/channel/library/song/edit.vue"),
       meta: {
-        title: "歌单管理"
+        title: "编辑曲库歌曲",
+        showLink: false,
+        activePath: "/channel/library"
+      }
+    },
+    {
+      path: "/channel/library/song-detail/:id",
+      name: "ChannelPlaylistDetail",
+      component: () => import("@/views/channel/library/playlist/detail.vue"),
+      meta: {
+        title: "歌单详情",
+        showLink: false,
+        activePath: "/channel/library"
       }
     }
   ]

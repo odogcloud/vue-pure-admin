@@ -1,76 +1,84 @@
 import { http } from "@/utils/http";
 
-type ResultTable = {
+type Result<T = unknown> = {
   code: number;
   message: string;
-  data?: {
-    list: Array<any>;
-    total?: number;
-    pageSize?: number;
-    currentPage?: number;
-  };
+  data?: T;
 };
+
+type ResultTable = Result<{
+  list: Array<any>;
+  total?: number;
+  pageSize?: number;
+  currentPage?: number;
+  playlistName?: string;
+}>;
+
+const post = <T = Result>(url: string, data?: object) =>
+  http.request<T>("post", url, { data });
 
 /** 频道曲库列表 */
-export const getSongList = (data?: object) => {
-  return http.request<ResultTable>("post", "/channel/song-list", { data });
-};
+export const getSongList = (data?: object) =>
+  post<ResultTable>("/channel/song-list", data);
 
-/** 编辑频道曲库歌曲 */
-export const updateSong = (data?: object) => {
-  return http.request<{ code: number; message: string }>(
-    "post",
-    "/channel/song-update",
-    { data }
-  );
-};
+/** 曲库歌曲详情 */
+export const getSongDetail = (data?: object) =>
+  post<Result<any>>("/channel/song-detail", data);
 
-/** 删除频道曲库歌曲 */
-export const deleteSong = (data?: object) => {
-  return http.request<{ code: number; message: string }>(
-    "post",
-    "/channel/song-delete",
-    { data }
-  );
-};
+/** 编辑曲库歌曲 */
+export const updateSong = (data?: object) => post("/channel/song-update", data);
 
-/** 获取全部频道歌单 */
-export const getPlaylistOptions = () => {
-  return http.request<{
-    code: number;
-    message: string;
-    data: Array<{ id: number; name: string }>;
-  }>("get", "/channel/playlist-all");
-};
+/** 删除曲库歌曲（支持批量） */
+export const deleteSongs = (data?: object) =>
+  post("/channel/song-delete", data);
 
-/** 收录歌曲到歌单 */
-export const collectSong = (data?: object) => {
-  return http.request<{ code: number; message: string }>(
-    "post",
-    "/channel/song-collect",
-    { data }
-  );
-};
+/** 收录歌曲到歌单（支持批量） */
+export const collectSongs = (data?: object) =>
+  post("/channel/song-collect", data);
+
+/** 批量导入歌曲 */
+export const importSongs = (data?: object) =>
+  post<Result<{ count: number }>>("/channel/song-import", data);
+
+/** 标签选项 */
+export const getTagOptions = () =>
+  http.request<
+    Result<{ hotTags: string[]; aiTags: string[]; recentTags: string[] }>
+  >("get", "/channel/tag-options");
+
+/** 删除最近使用的标签 */
+export const deleteRecentTag = (data?: object) =>
+  post("/channel/recent-tag-delete", data);
+
+/** 全部歌单及最近加入的歌单 */
+export const getPlaylistOptions = () =>
+  http.request<
+    Result<{
+      list: Array<{ id: number; name: string }>;
+      recentIds: number[];
+    }>
+  >("get", "/channel/playlist-all");
 
 /** 频道歌单列表 */
-export const getPlaylistList = (data?: object) => {
-  return http.request<ResultTable>("post", "/channel/playlist-list", { data });
-};
+export const getPlaylistList = (data?: object) =>
+  post<ResultTable>("/channel/playlist-list", data);
 
 /** 新增或编辑频道歌单 */
-export const savePlaylist = (data?: object) => {
-  return http.request<{ code: number; message: string }>(
-    "post",
-    "/channel/playlist-save",
-    { data }
-  );
-};
+export const savePlaylist = (data?: object) =>
+  post("/channel/playlist-save", data);
 
 /** 删除频道歌单 */
-export const deletePlaylist = (data?: object) => {
-  return http.request<{ code: number; message: string }>(
-    "post",
-    "/channel/playlist-delete",
-    { data }
-  );
-};
+export const deletePlaylist = (data?: object) =>
+  post("/channel/playlist-delete", data);
+
+/** 歌单内歌曲列表 */
+export const getPlaylistSongs = (data?: object) =>
+  post<ResultTable>("/channel/playlist-songs", data);
+
+/** 修改歌曲在歌单内的权重 */
+export const updatePlaylistSongWeight = (data?: object) =>
+  post("/channel/playlist-song-weight", data);
+
+/** 取消收录（支持批量） */
+export const removePlaylistSongs = (data?: object) =>
+  post("/channel/playlist-song-remove", data);
