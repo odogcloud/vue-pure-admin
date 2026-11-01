@@ -75,5 +75,24 @@ export default [
         }
       }
     ]
+  },
+  {
+    path: "/member",
+    redirect: "/channel/member",
+    meta: {
+      icon: "ri:user-line",
+      title: "成员管理",
+      rank: 0.4
+    },
+    children: [
+      {
+        path: "/channel/member",
+        name: "ChannelMember",
+        component: () => import("@/views/channel/member/index.vue"),
+        meta: {
+          title: "成员管理"
+        }
+      }
+    ]
   }
 ] satisfies RouteConfigsTable[];
