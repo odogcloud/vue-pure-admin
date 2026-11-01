@@ -45,14 +45,26 @@ defineExpose({ getRef });
 
 <template>
   <el-form ref="ruleFormRef" :model="form" :rules="rules" label-width="90px">
-    <el-form-item label="当前密码" prop="oldPassword">
-      <el-input v-model="form.oldPassword" show-password />
+    <el-form-item label="原密码" prop="oldPassword">
+      <el-input
+        v-model="form.oldPassword"
+        show-password
+        placeholder="请输入原密码"
+      />
     </el-form-item>
     <el-form-item label="新密码" prop="newPassword">
-      <el-input v-model="form.newPassword" show-password />
+      <el-input
+        v-model="form.newPassword"
+        show-password
+        placeholder="请输入新密码"
+      />
     </el-form-item>
     <el-form-item label="确认密码" prop="repeatPassword">
-      <el-input v-model="form.repeatPassword" show-password />
+      <el-input
+        v-model="form.repeatPassword"
+        show-password
+        placeholder="请确认新密码"
+      />
     </el-form-item>
   </el-form>
 </template>

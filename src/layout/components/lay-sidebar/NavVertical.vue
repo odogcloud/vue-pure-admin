@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import { emitter } from "@/utils/mitt";
+import { message } from "@/utils/message";
 import { useNav } from "@/layout/hooks/useNav";
 import { responsiveStorageNameSpace } from "@/config";
 import { storageLocal, isAllEmpty } from "@pureadmin/utils";
@@ -44,6 +45,10 @@ const loading = computed(() =>
 const defaultActive = computed(() =>
   !isAllEmpty(route.meta?.activePath) ? route.meta.activePath : route.path
 );
+
+function openCentralLibrary() {
+  message("中央曲库尚未接入", { type: "info" });
+}
 
 function getSubMenuData() {
   let path = "";
@@ -117,6 +122,11 @@ onBeforeUnmount(() => {
         />
       </el-menu>
     </el-scrollbar>
+    <div v-if="!isCollapse" class="sidebar-central">
+      <el-button type="primary" @click="openCentralLibrary">
+        中央曲库-选歌
+      </el-button>
+    </div>
     <LaySidebarCenterCollapse
       v-if="device !== 'mobile' && (isShow || isCollapse)"
       :is-active="pureApp.sidebar.opened"
@@ -133,5 +143,14 @@ onBeforeUnmount(() => {
 <style scoped>
 :deep(.el-loading-mask) {
   opacity: 0.45;
+}
+
+.sidebar-central {
+  position: absolute;
+  right: 0;
+  bottom: 56px;
+  left: 0;
+  z-index: 1;
+  text-align: center;
 }
 </style>

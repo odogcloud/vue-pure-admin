@@ -17,10 +17,20 @@ export default {
     {
       path: "/welcome",
       name: "Welcome",
-      component: () => import("@/views/welcome/index.vue"),
+      component: () => import("@/views/channel/home/index.vue"),
       meta: {
         title: $t("menus.pureHome"),
         showLink: VITE_HIDE_HOME === "true" ? false : true
+      }
+    },
+    {
+      path: "/welcome/view-notice/:type/:id",
+      name: "NoticeDetail",
+      component: () => import("@/views/channel/home/detail.vue"),
+      meta: {
+        title: "查看公告",
+        showLink: false,
+        activePath: "/welcome"
       }
     }
   ]

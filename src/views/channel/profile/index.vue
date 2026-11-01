@@ -7,15 +7,16 @@ import { useUserStoreHook } from "@/store/modules/user";
 import { changePassword, getMine, updateMine } from "@/api/user";
 import PasswordForm from "@/views/account-settings/components/PasswordForm.vue";
 import { sureCancelButtons } from "../library/utils/dialog";
-import FieldForm from "./FieldForm.vue";
 
 defineOptions({
   name: "ChannelProfile"
 });
 
-const fieldFormRef = ref();
 const passwordFormRef = ref();
 const loading = ref(true);
+const editingName = ref(false);
+const savingName = ref(false);
+const nameInput = ref("");
 const profile = reactive({
   avatar: "",
   username: "",
@@ -42,48 +43,32 @@ async function load() {
   }
 }
 
-function openField(
-  title: string,
-  label: string,
-  field: "nickname" | "phone",
-  maxlength: number
-) {
-  addDialog({
-    title,
-    width: "480px",
-    draggable: true,
-    closeOnClickModal: false,
-    footerButtons: sureCancelButtons,
-    props: {
-      formInline: { value: profile[field] }
-    },
-    contentRenderer: () =>
-      h(FieldForm, {
-        ref: fieldFormRef,
-        formInline: null,
-        label,
-        maxlength,
-        required: field === "nickname"
-      }),
-    beforeSure: (done, { options }) => {
-      fieldFormRef.value.getRef().validate(async valid => {
-        if (!valid) return;
-        const { value } = options.props.formInline as { value: string };
-        const { username: _username, ...rest } = profile;
-        const result = await updateMine({ ...rest, [field]: value.trim() });
-        if (result.code !== 0) {
-          message(result.message, { type: "error" });
-          return;
-        }
-        profile[field] = value.trim();
-        if (field === "nickname") {
-          useUserStoreHook().SET_NICKNAME(profile.nickname);
-        }
-        message("修改成功", { type: "success" });
-        done();
-      });
+function startEditName() {
+  nameInput.value = profile.nickname;
+  editingName.value = true;
+}
+
+async function saveName() {
+  const nickname = nameInput.value.trim();
+  if (!nickname) {
+    message("请输入用户名", { type: "warning" });
+    return;
+  }
+  savingName.value = true;
+  try {
+    const { username: _username, ...rest } = profile;
+    const result = await updateMine({ ...rest, nickname });
+    if (result.code !== 0) {
+      message(result.message, { type: "error" });
+      return;
     }
-  });
+    profile.nickname = nickname;
+    useUserStoreHook().SET_NICKNAME(nickname);
+    editingName.value = false;
+    message("修改成功", { type: "success" });
+  } finally {
+    savingName.value = false;
+  }
 }
 
 function openPassword() {
@@ -126,34 +111,45 @@ onMounted(load);
   <div v-loading="loading" class="main bg-bg_color m-6! p-8">
     <div class="profile-row">
       <span class="profile-row__label">用户名</span>
-      <span class="profile-row__value">{{ profile.nickname || "-" }}</span>
-      <el-button
-        link
-        type="primary"
-        @click="openField('修改用户名', '用户名', 'nickname', 50)"
-      >
-        编辑
-      </el-button>
+      <div>
+        <template v-if="editingName">
+          <el-input
+            v-model="nameInput"
+            maxlength="50"
+            class="profile-row__input"
+            @keydown.enter.prevent="saveName"
+          />
+          <div>
+            <el-button
+              link
+              type="primary"
+              :loading="savingName"
+              @click="saveName"
+            >
+              确定
+            </el-button>
+          </div>
+        </template>
+        <template v-else>
+          <div>{{ profile.nickname || "-" }}</div>
+          <el-button link type="primary" @click="startEditName">编辑</el-button>
+        </template>
+      </div>
     </div>
     <div class="profile-row">
       <span class="profile-row__label">登录邮箱</span>
-      <span class="profile-row__value">{{ maskedEmail }}</span>
+      <div>{{ maskedEmail }}</div>
     </div>
     <div class="profile-row">
       <span class="profile-row__label">登录密码</span>
-      <span class="profile-row__value">******</span>
-      <el-button link type="primary" @click="openPassword">编辑</el-button>
+      <div>
+        <div>******</div>
+        <el-button link type="primary" @click="openPassword">编辑</el-button>
+      </div>
     </div>
     <div class="profile-row">
       <span class="profile-row__label">手机号</span>
-      <span class="profile-row__value">{{ profile.phone || "-" }}</span>
-      <el-button
-        link
-        type="primary"
-        @click="openField('修改手机号', '手机号', 'phone', 30)"
-      >
-        编辑
-      </el-button>
+      <div>{{ profile.phone }}</div>
     </div>
   </div>
 </template>
@@ -161,18 +157,19 @@ onMounted(load);
 <style lang="scss" scoped>
 .profile-row {
   display: flex;
-  gap: 24px;
-  align-items: center;
+  gap: 16px;
+  align-items: flex-start;
   padding: 16px 0;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  line-height: 24px;
 
   &__label {
     width: 90px;
     font-weight: 700;
+    text-align: right;
   }
 
-  &__value {
-    min-width: 240px;
+  &__input {
+    width: 240px;
   }
 }
 </style>
