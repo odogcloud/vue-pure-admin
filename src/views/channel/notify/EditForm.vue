@@ -60,19 +60,10 @@ defineExpose({ getRef });
             v-bind="item"
           />
         </el-select>
-        <div class="notify-hint">添加后客户相关操作，会收到邮件提醒</div>
+        <div class="channel-hint">添加后客户相关操作，会收到邮件提醒</div>
       </div>
     </el-form-item>
   </el-form>
 </template>
-
-<style lang="scss" scoped>
-.notify-hint {
-  margin-top: 4px;
-  font-size: 12px;
-  line-height: 20px;
-  color: var(--el-text-color-secondary);
-}
-</style>
 
 <style lang="scss" src="../library/utils/search.scss"></style>
