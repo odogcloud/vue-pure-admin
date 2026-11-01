@@ -74,6 +74,15 @@ function filterChildrenTree(data: RouteComponent[]) {
   return newTree;
 }
 
+/** 路由设置了 auths 时，用户至少需要拥有其中一个权限 */
+function hasRoutePermission(auths?: string[], permissions: string[] = []) {
+  return (
+    !auths?.length ||
+    permissions.includes("*:*:*") ||
+    auths.some(auth => permissions.includes(auth))
+  );
+}
+
 /** 判断两个数组彼此是否存在相同值 */
 function isOneOfArray(a: Array<string>, b: Array<string>) {
   return Array.isArray(a) && Array.isArray(b)
@@ -85,10 +94,12 @@ function isOneOfArray(a: Array<string>, b: Array<string>) {
 
 /** 从localStorage里取出当前登录用户的角色roles，过滤无权限的菜单 */
 function filterNoPermissionTree(data: RouteComponent[]) {
-  const currentRoles =
-    storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [];
-  const newTree = cloneDeep(data).filter((v: any) =>
-    isOneOfArray(v.meta?.roles, currentRoles)
+  const userInfo = storageLocal().getItem<DataInfo<number>>(userKey);
+  const currentRoles = userInfo?.roles ?? [];
+  const newTree = cloneDeep(data).filter(
+    (v: any) =>
+      isOneOfArray(v.meta?.roles, currentRoles) &&
+      hasRoutePermission(v.meta?.auths, userInfo?.permissions)
   );
   newTree.forEach(
     (v: any) => v.children && (v.children = filterNoPermissionTree(v.children))
@@ -413,6 +424,7 @@ export {
   getTopMenu,
   addPathMatch,
   isOneOfArray,
+  hasRoutePermission,
   getHistoryMode,
   addAsyncRoutes,
   getParentPaths,

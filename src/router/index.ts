@@ -18,6 +18,7 @@ import {
   getTopMenu,
   initRouter,
   isOneOfArray,
+  hasRoutePermission,
   getHistoryMode,
   findRouteByPath,
   handleAliveRoute,
@@ -152,7 +153,10 @@ router.beforeEach((to: ToRouteType, _from) => {
   }
   if (Cookies.get(multipleTabsKey) && userInfo) {
     // 无权限跳转403页面
-    if (to.meta?.roles && !isOneOfArray(to.meta?.roles, userInfo?.roles)) {
+    if (
+      (to.meta?.roles && !isOneOfArray(to.meta?.roles, userInfo?.roles)) ||
+      !hasRoutePermission(to.meta?.auths, userInfo?.permissions)
+    ) {
       return { path: "/error/403" };
     }
     // 开启隐藏首页后在浏览器地址栏手动输入首页welcome路由则跳转到404页面

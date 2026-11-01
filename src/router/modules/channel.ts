@@ -13,6 +13,7 @@ export default [
         name: "ChannelLibrary",
         component: () => import("@/views/channel/library/index.vue"),
         meta: {
+          auths: ["channel:read"],
           title: "曲库管理"
         }
       },
@@ -21,6 +22,7 @@ export default [
         name: "ChannelEditSong",
         component: () => import("@/views/channel/library/song/edit.vue"),
         meta: {
+          auths: ["channel:read"],
           title: "编辑曲库歌曲",
           showLink: false,
           activePath: "/channel/library"
@@ -31,6 +33,7 @@ export default [
         name: "ChannelPlaylistDetail",
         component: () => import("@/views/channel/library/playlist/detail.vue"),
         meta: {
+          auths: ["channel:read"],
           title: "歌单详情",
           showLink: false,
           activePath: "/channel/library"
@@ -52,6 +55,7 @@ export default [
         name: "ChannelCustomer",
         component: () => import("@/views/channel/customer/index.vue"),
         meta: {
+          auths: ["customer:read"],
           title: "歌曲客户"
         }
       }
@@ -71,6 +75,7 @@ export default [
         name: "ChannelCooperation",
         component: () => import("@/views/channel/cooperation/index.vue"),
         meta: {
+          auths: ["cooperation:read"],
           title: "合作申请"
         }
       }
@@ -90,6 +95,7 @@ export default [
         name: "ChannelMember",
         component: () => import("@/views/channel/member/index.vue"),
         meta: {
+          auths: ["member:read"],
           title: "成员管理"
         }
       }
@@ -109,6 +115,7 @@ export default [
         name: "ChannelNotify",
         component: () => import("@/views/channel/notify/index.vue"),
         meta: {
+          auths: ["notify:read"],
           title: "通知管理"
         }
       }
@@ -128,6 +135,7 @@ export default [
         name: "ChannelStatistics",
         component: () => import("@/views/channel/statistics/index.vue"),
         meta: {
+          auths: ["stats:read"],
           title: "数据统计"
         }
       }
@@ -147,7 +155,28 @@ export default [
         name: "ChannelRole",
         component: () => import("@/views/channel/role/index.vue"),
         meta: {
+          auths: ["role:read"],
           title: "角色管理"
+        }
+      }
+    ]
+  },
+  {
+    path: "/sysuser",
+    redirect: "/system/user/index",
+    meta: {
+      icon: "ri:admin-line",
+      title: "用户管理",
+      rank: 0.75
+    },
+    children: [
+      {
+        path: "/system/user/index",
+        name: "SystemUser",
+        component: () => import("@/views/system/user/index.vue"),
+        meta: {
+          auths: ["user:read"],
+          title: "用户管理"
         }
       }
     ]

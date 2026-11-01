@@ -21,19 +21,58 @@ type ResultTable = {
   };
 };
 
+type ResultAction = {
+  code: number;
+  message: string;
+};
+
 /** 获取系统管理-用户管理列表 */
 export const getUserList = (data?: object) => {
-  return http.request<ResultTable>("post", "/user", { data });
+  return http.request<ResultTable>("post", "/sysuser/list", { data });
 };
 
-/** 系统管理-用户管理-获取所有角色列表 */
-export const getAllRoleList = () => {
-  return http.request<Result>("get", "/list-all-role");
+/** 系统管理-用户管理-可分配的角色和频道 */
+export const getUserOptions = () => {
+  return http.request<{
+    code: number;
+    message: string;
+    data?: {
+      roles: { id: number; name: string }[];
+      channels: { id: number; name: string }[];
+    };
+  }>("get", "/sysuser/options");
 };
 
-/** 系统管理-用户管理-根据userId，获取对应角色id列表（userId：用户id） */
-export const getRoleIds = (data?: object) => {
-  return http.request<Result>("post", "/list-role-ids", { data });
+/** 系统管理-用户管理-新增 */
+export const createUser = (data?: object) => {
+  return http.request<ResultAction>("post", "/sysuser/create", { data });
+};
+
+/** 系统管理-用户管理-修改资料 */
+export const updateUser = (data?: object) => {
+  return http.request<ResultAction>("post", "/sysuser/update", { data });
+};
+
+/** 系统管理-用户管理-启用或停用 */
+export const updateUserStatus = (data?: object) => {
+  return http.request<ResultAction>("post", "/sysuser/status", { data });
+};
+
+/** 系统管理-用户管理-删除，支持批量 */
+export const deleteUsers = (data?: object) => {
+  return http.request<ResultAction>("post", "/sysuser/delete", { data });
+};
+
+/** 系统管理-用户管理-重置密码 */
+export const resetUserPassword = (data?: object) => {
+  return http.request<ResultAction>("post", "/sysuser/reset-password", {
+    data
+  });
+};
+
+/** 系统管理-用户管理-分配角色和频道 */
+export const assignUser = (data?: object) => {
+  return http.request<ResultAction>("post", "/sysuser/assign", { data });
 };
 
 /** 获取系统管理-角色管理列表 */

@@ -17,15 +17,6 @@ const systemManagementRouter = {
   },
   children: [
     {
-      path: "/system/user/index",
-      name: "SystemUser",
-      meta: {
-        icon: "ri:admin-line",
-        title: "menus.pureUser",
-        roles: ["admin"]
-      }
-    },
-    {
       path: "/system/role/index",
       name: "SystemRole",
       meta: {

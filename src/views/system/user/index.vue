@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import tree from "./tree.vue";
 import { useUser } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
-import Upload from "~icons/ri/upload-line";
 import Role from "~icons/ri/admin-line";
 import Password from "~icons/ri/lock-password-line";
 import More from "~icons/ep/more-filled";
@@ -18,7 +16,6 @@ defineOptions({
   name: "SystemUser"
 });
 
-const treeRef = ref();
 const formRef = ref();
 const tableRef = ref();
 
@@ -27,41 +24,27 @@ const {
   loading,
   columns,
   dataList,
-  treeData,
-  treeLoading,
   selectedNum,
   pagination,
   buttonClass,
-  deviceDetection,
+  canWrite,
   onSearch,
   resetForm,
   onbatchDel,
   openDialog,
-  onTreeSelect,
-  handleUpdate,
   handleDelete,
-  handleUpload,
   handleReset,
   handleRole,
   handleSizeChange,
   onSelectionCancel,
   handleCurrentChange,
   handleSelectionChange
-} = useUser(tableRef, treeRef);
+} = useUser(tableRef);
 </script>
 
 <template>
-  <div :class="['flex', 'justify-between', deviceDetection() && 'flex-wrap']">
-    <tree
-      ref="treeRef"
-      :class="['mr-2', deviceDetection() ? 'w-full' : 'min-w-50']"
-      :treeData="treeData"
-      :treeLoading="treeLoading"
-      @tree-select="onTreeSelect"
-    />
-    <div
-      :class="[deviceDetection() ? ['w-full', 'mt-2'] : 'w-[calc(100%-200px)]']"
-    >
+  <div>
+    <div>
       <el-form
         ref="formRef"
         :inline="true"
@@ -91,8 +74,9 @@ const {
             clearable
             class="w-45!"
           >
-            <el-option label="已开启" value="1" />
-            <el-option label="已关闭" value="0" />
+            <el-option label="已启用" value="active" />
+            <el-option label="已停用" value="disabled" />
+            <el-option label="待激活" value="pending" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -110,13 +94,10 @@ const {
         </el-form-item>
       </el-form>
 
-      <PureTableBar
-        title="用户管理（仅演示，操作后不生效）"
-        :columns="columns"
-        @refresh="onSearch"
-      >
+      <PureTableBar title="用户管理" :columns="columns" @refresh="onSearch">
         <template #buttons>
           <el-button
+            v-if="canWrite"
             type="primary"
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
@@ -126,7 +107,7 @@ const {
         </template>
         <template v-slot="{ size, dynamicColumns }">
           <div
-            v-if="selectedNum > 0"
+            v-if="canWrite && selectedNum > 0"
             v-motion-fade
             class="bg-(--el-fill-color-light) w-full h-11.5 mb-2 pl-4 flex items-center"
           >
@@ -170,82 +151,71 @@ const {
             @page-current-change="handleCurrentChange"
           >
             <template #operation="{ row }">
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :size="size"
-                :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
-              >
-                修改
-              </el-button>
-              <el-popconfirm
-                :title="`是否确认删除用户编号为${row.id}的这条数据`"
-                @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="primary"
-                    :size="size"
-                    :icon="useRenderIcon(Delete)"
-                  >
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
-              <el-dropdown>
+              <template v-if="canWrite">
                 <el-button
-                  class="ml-3! mt-0.5!"
+                  class="reset-margin"
                   link
                   type="primary"
                   :size="size"
-                  :icon="useRenderIcon(More)"
-                  @click="handleUpdate(row)"
-                />
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item>
-                      <el-button
-                        :class="buttonClass"
-                        link
-                        type="primary"
-                        :size="size"
-                        :icon="useRenderIcon(Upload)"
-                        @click="handleUpload(row)"
-                      >
-                        上传头像
-                      </el-button>
-                    </el-dropdown-item>
-                    <el-dropdown-item>
-                      <el-button
-                        :class="buttonClass"
-                        link
-                        type="primary"
-                        :size="size"
-                        :icon="useRenderIcon(Password)"
-                        @click="handleReset(row)"
-                      >
-                        重置密码
-                      </el-button>
-                    </el-dropdown-item>
-                    <el-dropdown-item>
-                      <el-button
-                        :class="buttonClass"
-                        link
-                        type="primary"
-                        :size="size"
-                        :icon="useRenderIcon(Role)"
-                        @click="handleRole(row)"
-                      >
-                        分配角色
-                      </el-button>
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+                  :icon="useRenderIcon(EditPen)"
+                  @click="openDialog('修改', row)"
+                >
+                  修改
+                </el-button>
+                <el-popconfirm
+                  :title="`是否确认删除用户编号为${row.id}的这条数据`"
+                  @confirm="handleDelete(row)"
+                >
+                  <template #reference>
+                    <el-button
+                      class="reset-margin"
+                      link
+                      type="primary"
+                      :size="size"
+                      :icon="useRenderIcon(Delete)"
+                    >
+                      删除
+                    </el-button>
+                  </template>
+                </el-popconfirm>
+                <el-dropdown>
+                  <el-button
+                    class="ml-3! mt-0.5!"
+                    link
+                    type="primary"
+                    :size="size"
+                    :icon="useRenderIcon(More)"
+                  />
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item>
+                        <el-button
+                          :class="buttonClass"
+                          link
+                          type="primary"
+                          :size="size"
+                          :icon="useRenderIcon(Password)"
+                          @click="handleReset(row)"
+                        >
+                          重置密码
+                        </el-button>
+                      </el-dropdown-item>
+                      <el-dropdown-item>
+                        <el-button
+                          :class="buttonClass"
+                          link
+                          type="primary"
+                          :size="size"
+                          :icon="useRenderIcon(Role)"
+                          @click="handleRole(row)"
+                        >
+                          分配角色和频道
+                        </el-button>
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </template>
             </template>
           </pure-table>
         </template>

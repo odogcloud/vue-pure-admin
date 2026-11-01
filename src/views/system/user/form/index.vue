@@ -8,29 +8,20 @@ import { usePublicHooks } from "../../hooks";
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     title: "新增",
-    higherDeptOptions: [],
-    parentId: 0,
+    roleOptions: [],
+    channelOptions: [],
+    roleId: null,
+    channelIds: [],
     nickname: "",
     username: "",
     password: "",
     phone: "",
     email: "",
-    sex: "",
     status: 1,
-    remark: ""
+    description: ""
   })
 });
 
-const sexOptions = [
-  {
-    value: 0,
-    label: "男"
-  },
-  {
-    value: 1,
-    label: "女"
-  }
-];
 const ruleFormRef = ref();
 const { switchStyle } = usePublicHooks();
 const newFormInline = ref(props.formInline);
@@ -79,7 +70,9 @@ defineExpose({ getRef });
           <el-input
             v-model="newFormInline.password"
             clearable
-            placeholder="请输入用户密码"
+            show-password
+            type="password"
+            placeholder="8-18 位，至少包含数字、字母、符号中的两种"
           />
         </el-form-item>
       </re-col>
@@ -102,45 +95,49 @@ defineExpose({ getRef });
           />
         </el-form-item>
       </re-col>
-      <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="用户性别">
+      <re-col
+        v-if="newFormInline.title === '新增'"
+        :value="12"
+        :xs="24"
+        :sm="24"
+      >
+        <el-form-item label="用户角色">
           <el-select
-            v-model="newFormInline.sex"
-            placeholder="请选择用户性别"
+            v-model="newFormInline.roleId"
+            placeholder="无角色"
             class="w-full"
             clearable
           >
             <el-option
-              v-for="(item, index) in sexOptions"
-              :key="index"
-              :label="item.label"
-              :value="item.value"
+              v-for="item in newFormInline.roleOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
             />
           </el-select>
         </el-form-item>
       </re-col>
-
-      <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="归属部门">
-          <el-cascader
-            v-model="newFormInline.parentId"
+      <re-col
+        v-if="newFormInline.title === '新增'"
+        :value="12"
+        :xs="24"
+        :sm="24"
+      >
+        <el-form-item label="所属频道">
+          <el-select
+            v-model="newFormInline.channelIds"
+            placeholder="请选择"
             class="w-full"
-            :options="newFormInline.higherDeptOptions"
-            :props="{
-              value: 'id',
-              label: 'name',
-              emitPath: false,
-              checkStrictly: true
-            }"
             clearable
-            filterable
-            placeholder="请选择归属部门"
+            multiple
           >
-            <template #default="{ node, data }">
-              <span>{{ data.name }}</span>
-              <span v-if="!node.isLeaf"> ({{ data.children.length }}) </span>
-            </template>
-          </el-cascader>
+            <el-option
+              v-for="item in newFormInline.channelOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
       </re-col>
       <re-col
@@ -165,7 +162,7 @@ defineExpose({ getRef });
       <re-col>
         <el-form-item label="备注">
           <el-input
-            v-model="newFormInline.remark"
+            v-model="newFormInline.description"
             placeholder="请输入备注信息"
             type="textarea"
           />

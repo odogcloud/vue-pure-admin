@@ -2,20 +2,17 @@ interface FormItemProps {
   id?: number;
   /** 用于判断是`新增`还是`修改` */
   title: string;
-  higherDeptOptions: Record<string, unknown>[];
-  parentId: number;
+  roleOptions: { id: number; name: string }[];
+  channelOptions: { id: number; name: string }[];
+  roleId: number | null;
+  channelIds: number[];
   nickname: string;
   username: string;
   password: string;
   phone: string | number;
   email: string;
-  sex: string | number;
   status: number;
-  dept?: {
-    id?: number;
-    name?: string;
-  };
-  remark: string;
+  description: string;
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -26,8 +23,11 @@ interface RoleFormItemProps {
   nickname: string;
   /** 角色列表 */
   roleOptions: any[];
-  /** 选中的角色列表 */
-  ids: Record<number, unknown>[];
+  channelOptions: { id: number; name: string }[];
+  /** 选中的角色 */
+  roleId: number | null;
+  /** 选中的频道 */
+  channelIds: number[];
 }
 interface RoleFormProps {
   formInline: RoleFormItemProps;

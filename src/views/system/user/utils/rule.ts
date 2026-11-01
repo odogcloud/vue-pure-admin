@@ -1,18 +1,25 @@
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
-import { isPhone, isEmail } from "@pureadmin/utils";
+import { isEmail } from "@pureadmin/utils";
 
 /** 自定义表单规则校验 */
 export const formRules = reactive(<FormRules>{
   nickname: [{ required: true, message: "用户昵称为必填项", trigger: "blur" }],
   username: [{ required: true, message: "用户名称为必填项", trigger: "blur" }],
-  password: [{ required: true, message: "用户密码为必填项", trigger: "blur" }],
+  password: [
+    { required: true, message: "用户密码为必填项", trigger: "blur" },
+    {
+      pattern: /^[^\u4E00-\u9FA5]{8,18}$/,
+      message: "密码应为 8-18 位",
+      trigger: "blur"
+    }
+  ],
   phone: [
     {
       validator: (rule, value, callback) => {
         if (value === "") {
           callback();
-        } else if (!isPhone(value)) {
+        } else if (!/^[0-9+\-\s]{5,30}$/.test(value)) {
           callback(new Error("请输入正确的手机号码格式"));
         } else {
           callback();
