@@ -8,11 +8,17 @@ import Refresh from "~icons/ep/refresh";
 import Search from "~icons/ep/search";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
+import { hasPerms } from "@/utils/auth";
 import {
+  companyApproveSongs,
+  companyRejectSong,
+  createSong,
   deleteSongs,
   getPlaylistOptions,
   getSongList,
-  importSongs
+  importSongs,
+  submitSongs,
+  updateSongDraft
 } from "@/api/channel";
 import { useListPage } from "../utils/list";
 import { useSongActions } from "../utils/actions";
@@ -21,6 +27,7 @@ import {
   editedOptions,
   inPlaylistOptions,
   releasedOptions,
+  reviewStatusOptions,
   statusOptions,
   statusText,
   submitTypeOptions,
@@ -29,10 +36,16 @@ import {
 import SongCell from "../components/SongCell.vue";
 import ContactCell from "../components/ContactCell.vue";
 import ImportForm from "../components/ImportForm.vue";
-import { sureOnlyButtons } from "../utils/dialog";
+import SongForm from "../components/SongForm.vue";
+import ReviewProgress from "../components/ReviewProgress.vue";
+import { sureCancelButtons, sureOnlyButtons } from "../utils/dialog";
 
 const formRef = ref();
 const importFormRef = ref();
+const songFormRef = ref();
+const canWrite = hasPerms("channel:write");
+const canCompanyReview = ref(false);
+const canSubmit = row => ["draft", "rejected"].includes(row.reviewStatus);
 const form = reactive({
   name: "",
   contact: "",
@@ -42,7 +55,8 @@ const form = reactive({
   inPlaylist: "",
   edited: "",
   createTime: [],
-  status: ""
+  status: "",
+  reviewStatus: ""
 });
 
 const {
@@ -59,7 +73,9 @@ const {
   handleSelectionChange,
   refreshAfterRemove,
   clearSelection
-} = useListPage(form, getSongList);
+} = useListPage(form, getSongList, data => {
+  canCompanyReview.value = Boolean(data?.canCompanyReview);
+});
 const { goEdit, openLyrics, openCollect } = useSongActions();
 const { onAudioPlay, onAudioStop } = useListenReport();
 
@@ -89,12 +105,7 @@ const columns: TableColumnList = [
     formatter: ({ inPlaylist }) =>
       inPlaylist ? "已收录到歌单" : "未收录到歌单"
   },
-  {
-    label: "状态",
-    prop: "status",
-    width: 100,
-    formatter: ({ status }) => statusText(status)
-  },
+  { label: "状态", slot: "review", width: 230 },
   {
     label: "加入时间",
     prop: "createTime",
@@ -137,6 +148,125 @@ async function removeSongs(rows: any[]) {
   }
   message("删除成功", { type: "success" });
   refreshAfterRemove(rows.length);
+}
+
+const errorText = (error: any) => error?.response?.data?.message ?? "操作失败";
+
+function openSongForm(row?) {
+  addDialog({
+    title: row ? "编辑歌曲" : "新增歌曲",
+    width: "620px",
+    draggable: true,
+    closeOnClickModal: false,
+    footerButtons: sureCancelButtons,
+    props: {
+      formInline: {
+        id: row?.id,
+        name: row?.name ?? "",
+        lyricist: row?.lyricist ?? "",
+        composer: row?.composer ?? "",
+        released: row?.released ?? 0,
+        audioUrl: row?.audioUrl ?? "",
+        lyrics: row?.lyrics ?? ""
+      }
+    },
+    contentRenderer: () => h(SongForm, { ref: songFormRef, formInline: null }),
+    beforeSure: (done, { options }) => {
+      if (songFormRef.value.uploading) {
+        message("音频正在上传，请稍候", { type: "warning" });
+        return;
+      }
+      songFormRef.value.getRef().validate(async valid => {
+        if (!valid) return;
+        const data = options.props.formInline as { id?: number };
+        try {
+          const result = data.id
+            ? await updateSongDraft(data)
+            : await createSong(data);
+          if (result.code !== 0) {
+            message(result.message, { type: "error" });
+            return;
+          }
+          message("已保存为草稿，确认后请提交审核", { type: "success" });
+          done();
+          onSearch();
+        } catch (error) {
+          message(errorText(error), { type: "error" });
+        }
+      });
+    }
+  });
+}
+
+async function submitForReview(rows: any[]) {
+  try {
+    const {
+      code,
+      message: msg,
+      data
+    } = await submitSongs({
+      ids: rows.map(item => item.id)
+    });
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
+    }
+    message(
+      data.skipped
+        ? `已提交 ${data.count} 首，${data.skipped} 首未提交（需要先上传音频或状态不符）`
+        : `已提交 ${data.count} 首歌曲，等待平台审核`,
+      { type: data.skipped ? "warning" : "success" }
+    );
+    clearSelection();
+    onSearch();
+  } catch (error) {
+    message(errorText(error), { type: "error" });
+  }
+}
+
+async function companyApprove(row) {
+  try {
+    const { code, message: msg } = await companyApproveSongs({ ids: [row.id] });
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
+    }
+    message("已通过，等待平台审核", { type: "success" });
+    onSearch();
+  } catch (error) {
+    message(errorText(error), { type: "error" });
+  }
+}
+
+async function companyReject(row) {
+  let reason = "";
+  try {
+    const result = await ElMessageBox.prompt("请输入拒绝原因", "拒绝", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      inputType: "textarea",
+      inputValidator: value =>
+        (value?.trim().length > 0 && value.trim().length <= 200) ||
+        "请输入 1-200 字的拒绝原因"
+    });
+    reason = (result as { value: string }).value;
+  } catch {
+    return;
+  }
+  try {
+    const { code, message: msg } = await companyRejectSong({
+      id: row.id,
+      reason
+    });
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
+    }
+    message("已拒绝并退回", { type: "success" });
+    onSearch();
+  } catch (error) {
+    message(errorText(error), { type: "error" });
+  }
 }
 
 function openCentralLibrary() {
@@ -187,7 +317,10 @@ async function openImport() {
             message(result.message, { type: "error" });
             return;
           }
-          message(`成功导入 ${result.data.count} 首歌曲`, { type: "success" });
+          message(
+            `成功导入 ${result.data.count} 首歌曲，新歌为草稿，需上传音频并提交审核`,
+            { type: "success" }
+          );
           done();
           handleSearch();
         } catch {
@@ -314,6 +447,20 @@ async function openImport() {
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="审核情况:" prop="reviewStatus">
+        <el-select
+          v-model="form.reviewStatus"
+          placeholder="请选择审核情况"
+          clearable
+          class="w-full!"
+        >
+          <el-option
+            v-for="item in reviewStatusOptions"
+            :key="item.value"
+            v-bind="item"
+          />
+        </el-select>
+      </el-form-item>
       <div class="channel-search__actions">
         <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
           重置
@@ -334,13 +481,28 @@ async function openImport() {
         <el-button type="primary" @click="openCentralLibrary">
           中央曲库-选歌
         </el-button>
+        <el-button v-if="canWrite" type="primary" @click="openSongForm()">
+          新增歌曲
+        </el-button>
         <el-button type="primary" @click="openImport">批量导入</el-button>
       </div>
       <div>
         <el-button
+          v-if="canWrite"
           type="primary"
           plain
-          :disabled="!selected.length"
+          :disabled="!selected.some(canSubmit)"
+          @click="submitForReview(selected.filter(canSubmit))"
+        >
+          提交审核
+        </el-button>
+        <el-button
+          type="primary"
+          plain
+          :disabled="
+            !selected.length ||
+            selected.some(item => item.reviewStatus !== 'approved')
+          "
           @click="collectSelected"
         >
           收录到歌单
@@ -388,7 +550,9 @@ async function openImport() {
         <ContactCell :row="row" />
       </template>
       <template #audio="{ row }">
+        <span v-if="!row.audioUrl">未上传</span>
         <audio
+          v-else
           :src="row.audioUrl"
           controls
           preload="none"
@@ -402,17 +566,57 @@ async function openImport() {
           查看歌词
         </el-button>
       </template>
+      <template #review="{ row }">
+        <div v-if="row.reviewStatus === 'approved'">
+          {{ statusText(row.status) }}
+        </div>
+        <ReviewProgress :row="row" />
+      </template>
       <template #operation="{ row }">
         <div class="flex flex-col items-center gap-1">
-          <el-button link type="primary" @click="goEdit(row)">编辑</el-button>
-          <el-button
-            link
-            type="primary"
-            class="ml-0!"
-            @click="openCollect([row.id], afterCollect)"
+          <template v-if="canSubmit(row)">
+            <el-button link type="primary" @click="openSongForm(row)">
+              编辑
+            </el-button>
+            <el-button
+              link
+              type="primary"
+              class="ml-0!"
+              @click="submitForReview([row])"
+            >
+              提交审核
+            </el-button>
+          </template>
+          <template
+            v-else-if="
+              canWrite &&
+              canCompanyReview &&
+              row.reviewStatus === 'company_pending'
+            "
           >
-            收录到歌单
-          </el-button>
+            <el-button link type="primary" @click="companyApprove(row)">
+              通过
+            </el-button>
+            <el-button
+              link
+              type="danger"
+              class="ml-0!"
+              @click="companyReject(row)"
+            >
+              拒绝
+            </el-button>
+          </template>
+          <template v-else-if="row.reviewStatus === 'approved'">
+            <el-button link type="primary" @click="goEdit(row)">编辑</el-button>
+            <el-button
+              link
+              type="primary"
+              class="ml-0!"
+              @click="openCollect([row.id], afterCollect)"
+            >
+              收录到歌单
+            </el-button>
+          </template>
           <el-button
             link
             type="danger"

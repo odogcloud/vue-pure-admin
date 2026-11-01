@@ -12,6 +12,7 @@ type ResultTable = Result<{
   pageSize?: number;
   currentPage?: number;
   playlistName?: string;
+  canCompanyReview?: boolean;
 }>;
 
 const post = <T = Result>(url: string, data?: object) =>
@@ -24,6 +25,29 @@ export const getSongList = (data?: object) =>
 /** 曲库歌曲详情 */
 export const getSongDetail = (data?: object) =>
   post<Result<any>>("/channel/song-detail", data);
+
+/** 新增歌曲，保存为草稿 */
+export const createSong = (data?: object) =>
+  post<Result<{ id: number }>>("/channel/song-create", data);
+
+/** 修改草稿或被拒绝的歌曲 */
+export const updateSongDraft = (data?: object) =>
+  post("/channel/song-draft-update", data);
+
+/** 公司审核通过，提交给平台（支持批量） */
+export const companyApproveSongs = (data?: object) =>
+  post<Result<{ count: number }>>("/channel/song-company-approve", data);
+
+/** 公司审核拒绝 */
+export const companyRejectSong = (data?: object) =>
+  post("/channel/song-company-reject", data);
+
+/** 提交审核（支持批量） */
+export const submitSongs = (data?: object) =>
+  post<Result<{ count: number; skipped: number }>>(
+    "/channel/song-submit",
+    data
+  );
 
 /** 编辑曲库歌曲 */
 export const updateSong = (data?: object) => post("/channel/song-update", data);
@@ -83,8 +107,8 @@ export const updatePlaylistSongWeight = (data?: object) =>
 export const removePlaylistSongs = (data?: object) =>
   post("/channel/playlist-song-remove", data);
 
-/** 上传图片或视频，返回可访问的地址 */
-export const uploadFile = (file: File, kind: "image" | "video") => {
+/** 上传图片、视频或音频，返回可访问的地址 */
+export const uploadFile = (file: File, kind: "image" | "video" | "audio") => {
   const data = new FormData();
   data.append("file", file);
   data.append("kind", kind);

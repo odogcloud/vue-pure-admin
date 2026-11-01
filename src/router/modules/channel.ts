@@ -202,6 +202,26 @@ export default [
     ]
   },
   {
+    path: "/sysreview",
+    redirect: "/system/review/index",
+    meta: {
+      icon: "ri:checkbox-circle-line",
+      title: "歌曲审核",
+      rank: 0.77
+    },
+    children: [
+      {
+        path: "/system/review/index",
+        name: "SystemReview",
+        component: () => import("@/views/system/review/index.vue"),
+        meta: {
+          auths: ["review:read"],
+          title: "歌曲审核"
+        }
+      }
+    ]
+  },
+  {
     path: "/myProfile",
     redirect: "/channel/profile",
     meta: {

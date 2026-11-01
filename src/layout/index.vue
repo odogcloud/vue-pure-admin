@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { startPermissionSync } from "@/utils/syncPermissions";
 import "animate.css";
 // 引入 src/components/ReIcon/src/offlineIcon.ts 文件中所有使用addIcon添加过的本地图标
 import "@/components/ReIcon/src/offlineIcon";
@@ -15,6 +16,7 @@ import {
   computed,
   onMounted,
   onBeforeMount,
+  onBeforeUnmount,
   defineComponent
 } from "vue";
 import {
@@ -116,7 +118,12 @@ useResizeObserver(appWrapperRef, entries => {
   }
 });
 
+let stopPermissionSync: () => void;
+
+onBeforeUnmount(() => stopPermissionSync?.());
+
 onMounted(() => {
+  stopPermissionSync = startPermissionSync();
   if (isMobile) {
     toggle("mobile", false);
   }

@@ -6,9 +6,17 @@ import Refresh from "~icons/ep/refresh";
 import Search from "~icons/ep/search";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
-import { getMemberList, getRoleOptions, updateMember } from "@/api/member";
+import { hasPerms } from "@/utils/auth";
+import {
+  createMember,
+  getMemberList,
+  getRoleOptions,
+  removeMember,
+  updateMember
+} from "@/api/member";
 import { useListPage } from "../library/utils/list";
 import { sureCancelButtons } from "../library/utils/dialog";
+import AddForm from "./AddForm.vue";
 import EditForm from "./EditForm.vue";
 
 defineOptions({
@@ -22,7 +30,9 @@ const STATUS_OPTIONS = [
 ];
 
 const formRef = ref();
-const roles = ref<Array<{ id: number; name: string }>>([]);
+const addFormRef = ref();
+const canWrite = hasPerms("member:write");
+const roles = ref<Array<{ id: number; name: string; assignable: boolean }>>([]);
 const form = reactive({
   name: "",
   roleId: "",
@@ -39,7 +49,8 @@ const {
   handleSearch,
   resetForm,
   handleSizeChange,
-  handleCurrentChange
+  handleCurrentChange,
+  refreshAfterRemove
 } = useListPage(form, getMemberList);
 
 const columns: TableColumnList = [
@@ -70,12 +81,72 @@ const columns: TableColumnList = [
     formatter: ({ status }) =>
       STATUS_OPTIONS.find(item => item.value === status)?.label ?? "-"
   },
-  { label: "操作", fixed: "right", width: 100, slot: "operation" }
+  { label: "操作", fixed: "right", width: 120, slot: "operation" }
 ];
 
 async function loadRoles() {
   const { code, data } = await getRoleOptions();
   if (code === 0) roles.value = data;
+}
+
+const errorText = (error: any) => error?.response?.data?.message ?? "操作失败";
+
+function openAdd() {
+  addDialog({
+    title: "添加成员",
+    width: "520px",
+    draggable: true,
+    closeOnClickModal: false,
+    footerButtons: sureCancelButtons,
+    props: {
+      formInline: {
+        nickname: "",
+        username: "",
+        password: "",
+        phone: "",
+        email: "",
+        accountType: "member",
+        roleId: null
+      }
+    },
+    contentRenderer: () =>
+      h(AddForm, { ref: addFormRef, formInline: null, roles: roles.value }),
+    beforeSure: (done, { options }) => {
+      addFormRef.value.getRef().validate(async valid => {
+        if (!valid) return;
+        const data = options.props.formInline as { roleId: number | null };
+        try {
+          const result = await createMember({
+            ...data,
+            roleId: data.roleId || null
+          });
+          if (result.code !== 0) {
+            message(result.message, { type: "error" });
+            return;
+          }
+          message("添加成功", { type: "success" });
+          done();
+          onSearch();
+        } catch (error) {
+          message(errorText(error), { type: "error" });
+        }
+      });
+    }
+  });
+}
+
+async function handleRemove(row) {
+  try {
+    const { code, message: text } = await removeMember({ id: row.id });
+    if (code !== 0) {
+      message(text, { type: "error" });
+      return;
+    }
+    message("移除成功", { type: "success" });
+    refreshAfterRemove();
+  } catch (error) {
+    message(errorText(error), { type: "error" });
+  }
 }
 
 function openEdit(row) {
@@ -196,7 +267,9 @@ onMounted(loadRoles);
     </div>
 
     <div class="bg-bg_color p-5">
-      <p class="mb-4 font-bold">如需新增/禁用/删除成员，请联系平台运营</p>
+      <div v-if="canWrite" class="mb-4">
+        <el-button type="primary" @click="openAdd">添加成员</el-button>
+      </div>
       <pure-table
         row-key="id"
         align-whole="left"
@@ -220,7 +293,20 @@ onMounted(loadRoles);
           <span v-if="!row.phone && !row.email">-</span>
         </template>
         <template #operation="{ row }">
-          <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
+          <template v-if="canWrite">
+            <el-button link type="primary" @click="openEdit(row)">
+              编辑
+            </el-button>
+            <el-popconfirm
+              :title="`确认将 ${row.nickname || row.username} 移出公司吗？`"
+              @confirm="handleRemove(row)"
+            >
+              <template #reference>
+                <el-button link type="danger">移除</el-button>
+              </template>
+            </el-popconfirm>
+          </template>
+          <span v-else>-</span>
         </template>
       </pure-table>
     </div>

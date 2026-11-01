@@ -64,3 +64,11 @@ export const tagCascaderOptions = [
     ])
   }
 ];
+
+export const reviewStatusOptions = [
+  { label: "草稿", value: "draft" },
+  { label: "待公司审核", value: "company_pending" },
+  { label: "待平台审核", value: "pending" },
+  { label: "已通过", value: "approved" },
+  { label: "已拒绝", value: "rejected" }
+];

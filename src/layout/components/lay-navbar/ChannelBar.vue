@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { useClipboard } from "@vueuse/core";
 import type { FormInstance, FormRules } from "element-plus";
 import { message } from "@/utils/message";
+import { hasPerms } from "@/utils/auth";
 import {
   getApplyCode,
   getMyChannels,
@@ -19,6 +20,8 @@ import {
 
 defineOptions({ name: "ChannelBar" });
 
+const canEditName = hasPerms("channel:write") && hasPerms("member:write");
+const canSeeCode = hasPerms("customer:read");
 const channels = ref<MyChannel[]>([]);
 const currentId = ref<number>();
 const current = computed(() =>
@@ -139,11 +142,15 @@ onMounted(() => {
       />
     </el-select>
     <template v-if="current">
-      <el-button link type="primary" @click="openName">编辑</el-button>
+      <el-button v-if="canEditName" link type="primary" @click="openName"
+        >编辑</el-button
+      >
       <span class="whitespace-nowrap">
         状态：{{ current.status === "active" ? "正常" : "已停用" }}
       </span>
-      <el-button type="primary" plain @click="openCode">频道申请码</el-button>
+      <el-button v-if="canSeeCode" type="primary" plain @click="openCode"
+        >频道申请码</el-button
+      >
     </template>
 
     <el-dialog
