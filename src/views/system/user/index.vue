@@ -28,6 +28,8 @@ const {
   pagination,
   buttonClass,
   canWrite,
+  canUpgrade,
+  ACCOUNT_TYPES,
   onSearch,
   resetForm,
   onbatchDel,
@@ -35,6 +37,7 @@ const {
   handleDelete,
   handleReset,
   handleRole,
+  handleUpgrade,
   handleSizeChange,
   onSelectionCancel,
   handleCurrentChange,
@@ -77,6 +80,20 @@ const {
             <el-option label="已启用" value="active" />
             <el-option label="已停用" value="disabled" />
             <el-option label="待激活" value="pending" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="账号类型：" prop="accountType">
+          <el-select
+            v-model="form.accountType"
+            placeholder="请选择"
+            clearable
+            class="w-45!"
+          >
+            <el-option
+              v-for="item in ACCOUNT_TYPES"
+              :key="item.value"
+              v-bind="item"
+            />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -210,6 +227,18 @@ const {
                           @click="handleRole(row)"
                         >
                           分配角色和频道
+                        </el-button>
+                      </el-dropdown-item>
+                      <el-dropdown-item v-if="canUpgrade">
+                        <el-button
+                          :class="buttonClass"
+                          link
+                          type="primary"
+                          :size="size"
+                          :icon="useRenderIcon(Role)"
+                          @click="handleUpgrade(row)"
+                        >
+                          升级为厂牌/公司
                         </el-button>
                       </el-dropdown-item>
                     </el-dropdown-menu>

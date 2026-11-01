@@ -4,6 +4,7 @@ import ReCol from "@/components/ReCol";
 import { formRules } from "../utils/rule";
 import { FormProps } from "../utils/types";
 import { usePublicHooks } from "../../hooks";
+import { ACCOUNT_TYPES } from "../utils/constants";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     phone: "",
     email: "",
     status: 1,
+    accountType: "personal",
     description: ""
   })
 });
@@ -86,6 +88,17 @@ defineExpose({ getRef });
         </el-form-item>
       </re-col>
 
+      <re-col :value="12" :xs="24" :sm="24">
+        <el-form-item label="账号类型">
+          <el-select v-model="newFormInline.accountType" class="w-full">
+            <el-option
+              v-for="item in ACCOUNT_TYPES"
+              :key="item.value"
+              v-bind="item"
+            />
+          </el-select>
+        </el-form-item>
+      </re-col>
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="邮箱" prop="email">
           <el-input

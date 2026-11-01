@@ -2,6 +2,8 @@ import "./reset.css";
 import dayjs from "dayjs";
 import roleForm from "../form/role.vue";
 import editForm from "../form/index.vue";
+import upgradeForm from "../form/upgrade.vue";
+import { ACCOUNT_TYPES } from "./constants";
 import { message } from "@/utils/message";
 import userAvatar from "@/assets/user.jpg";
 import { usePublicHooks } from "../../hooks";
@@ -24,7 +26,8 @@ import {
   getUserOptions,
   resetUserPassword,
   updateUser,
-  updateUserStatus
+  updateUserStatus,
+  upgradeUser
 } from "@/api/system";
 import {
   ElForm,
@@ -48,6 +51,7 @@ export function useUser(tableRef: Ref) {
   const form = reactive({
     username: "",
     phone: "",
+    accountType: "",
     status: ""
   });
   const formRef = ref();
@@ -57,6 +61,10 @@ export function useUser(tableRef: Ref) {
   const switchLoadMap = ref({});
   const { switchStyle } = usePublicHooks();
   const canWrite = computed(() => hasPerms("user:write"));
+  const canUpgrade = computed(
+    () => hasPerms("user:write") && hasPerms("company:write")
+  );
+  const upgradeFormRef = ref();
   const selectedNum = ref(0);
   const pagination = reactive<PaginationProps>({
     total: 0,
@@ -99,6 +107,14 @@ export function useUser(tableRef: Ref) {
       label: "用户昵称",
       prop: "nickname",
       minWidth: 130
+    },
+    {
+      label: "账号类型",
+      prop: "accountType",
+      minWidth: 90,
+      formatter: ({ accountType }) =>
+        ACCOUNT_TYPES.find(item => item.value === accountType)?.label ??
+        accountType
     },
     {
       label: "角色",
@@ -332,6 +348,7 @@ export function useUser(tableRef: Ref) {
           nickname: row?.nickname ?? "",
           username: row?.username ?? "",
           password: "",
+          accountType: row?.accountType ?? "personal",
           phone: row?.phone ?? "",
           email: row?.email ?? "",
           status: row?.status ?? 1,
@@ -349,8 +366,16 @@ export function useUser(tableRef: Ref) {
         const curData = options.props.formInline as FormItemProps;
         FormRef.validate(async valid => {
           if (!valid) return;
-          const { nickname, username, phone, email, description } = curData;
-          const profile = { nickname, username, phone, email, description };
+          const { nickname, username, phone, email, description, accountType } =
+            curData;
+          const profile = {
+            nickname,
+            username,
+            phone,
+            email,
+            description,
+            accountType
+          };
           const done = await runAction(
             () =>
               title === "新增"
@@ -455,6 +480,37 @@ export function useUser(tableRef: Ref) {
     });
   }
 
+  /** 升级为厂牌或公司 */
+  function handleUpgrade(row) {
+    addDialog({
+      title: `升级 ${row.username}`,
+      width: "460px",
+      draggable: true,
+      closeOnClickModal: false,
+      props: {
+        formInline: { name: "", type: "label" }
+      },
+      contentRenderer: () =>
+        h(upgradeForm, { ref: upgradeFormRef, formInline: null }),
+      beforeSure: (done, { options }) => {
+        upgradeFormRef.value.getRef().validate(async valid => {
+          if (!valid) return;
+          const { name, type } = options.props.formInline as {
+            name: string;
+            type: string;
+          };
+          const success = await runAction(
+            () => upgradeUser({ id: row.id, name, type }),
+            "升级成功"
+          );
+          if (!success) return;
+          done();
+          onSearch();
+        });
+      }
+    });
+  }
+
   /** 分配角色和频道 */
   function handleRole(row) {
     addDialog({
@@ -516,6 +572,8 @@ export function useUser(tableRef: Ref) {
     pagination,
     buttonClass,
     canWrite,
+    canUpgrade,
+    ACCOUNT_TYPES,
     onSearch,
     resetForm,
     onbatchDel,
@@ -523,6 +581,7 @@ export function useUser(tableRef: Ref) {
     handleDelete,
     handleReset,
     handleRole,
+    handleUpgrade,
     handleSizeChange,
     onSelectionCancel,
     handleCurrentChange,

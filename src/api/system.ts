@@ -70,6 +70,11 @@ export const resetUserPassword = (data?: object) => {
   });
 };
 
+/** 系统管理-用户管理-升级为厂牌或公司 */
+export const upgradeUser = (data?: object) => {
+  return http.request<ResultAction>("post", "/sysuser/upgrade", { data });
+};
+
 /** 系统管理-用户管理-分配角色和频道 */
 export const assignUser = (data?: object) => {
   return http.request<ResultAction>("post", "/sysuser/assign", { data });

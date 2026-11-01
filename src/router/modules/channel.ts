@@ -182,6 +182,26 @@ export default [
     ]
   },
   {
+    path: "/syscompany",
+    redirect: "/system/company/index",
+    meta: {
+      icon: "ri:building-line",
+      title: "公司管理",
+      rank: 0.76
+    },
+    children: [
+      {
+        path: "/system/company/index",
+        name: "SystemCompany",
+        component: () => import("@/views/system/company/index.vue"),
+        meta: {
+          auths: ["company:read"],
+          title: "公司管理"
+        }
+      }
+    ]
+  },
+  {
     path: "/myProfile",
     redirect: "/channel/profile",
     meta: {

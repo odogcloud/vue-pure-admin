@@ -12,6 +12,7 @@ interface FormItemProps {
   phone: string | number;
   email: string;
   status: number;
+  accountType: string;
   description: string;
 }
 interface FormProps {
