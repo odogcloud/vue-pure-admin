@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { h, reactive, ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
+import Search from "~icons/ep/search";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { useUserStoreHook } from "@/store/modules/user";
@@ -147,7 +148,7 @@ async function handleDelete(row) {
         </el-button>
         <el-button
           type="primary"
-          :icon="useRenderIcon('ri/search-line')"
+          :icon="useRenderIcon(Search)"
           :loading="loading"
           @click="handleSearch"
         >

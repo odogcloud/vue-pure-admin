@@ -6,6 +6,7 @@ import { utils, writeFile } from "xlsx";
 import { ElMessageBox } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
+import Search from "~icons/ep/search";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
@@ -316,7 +317,7 @@ onMounted(() => {
         </el-button>
         <el-button
           type="primary"
-          :icon="useRenderIcon('ri/search-line')"
+          :icon="useRenderIcon(Search)"
           :loading="loading"
           @click="handleSearch"
         >
