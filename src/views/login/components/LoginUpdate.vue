@@ -3,148 +3,76 @@ import { useI18n } from "vue-i18n";
 import { ref, reactive } from "vue";
 import Motion from "../utils/motion";
 import { message } from "@/utils/message";
-import { updateRules } from "../utils/rule";
+import { forgotPassword } from "@/api/user";
 import type { FormInstance } from "element-plus";
-import { useVerifyCode } from "../utils/verifyCode";
-import { $t, transformI18n } from "@/plugins/i18n";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Lock from "~icons/ri/lock-fill";
-import Iphone from "~icons/ep/iphone";
-import Keyhole from "~icons/ri/shield-keyhole-line";
+import Message from "~icons/ep/message";
 
 const { t } = useI18n();
 const loading = ref(false);
-const ruleForm = reactive({
-  phone: "",
-  verifyCode: "",
-  password: "",
-  repeatPassword: ""
-});
+const ruleForm = reactive({ email: "" });
 const ruleFormRef = ref<FormInstance>();
-const { isDisabled, text } = useVerifyCode();
-const repeatPasswordRule = [
-  {
-    validator: (rule, value, callback) => {
-      if (value === "") {
-        callback(new Error(transformI18n($t("login.purePassWordSureReg"))));
-      } else if (ruleForm.password !== value) {
-        callback(
-          new Error(transformI18n($t("login.purePassWordDifferentReg")))
-        );
-      } else {
-        callback();
-      }
-    },
-    trigger: "blur"
-  }
-];
+const rules = {
+  email: [
+    { required: true, message: "请输入邮箱", trigger: "blur" },
+    { type: "email" as const, message: "邮箱格式不正确", trigger: "blur" }
+  ]
+};
 
-const onUpdate = async (formEl: FormInstance | undefined) => {
-  loading.value = true;
+const onSubmit = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
-  await formEl.validate(valid => {
-    if (valid) {
-      // 模拟请求，需根据实际开发进行修改
-      setTimeout(() => {
-        message(transformI18n($t("login.purePassWordUpdateReg")), {
-          type: "success"
-        });
-        loading.value = false;
-      }, 2000);
-    } else {
-      loading.value = false;
+  const valid = await formEl.validate().catch(() => false);
+  if (!valid) return;
+  loading.value = true;
+  try {
+    const { code, message: msg } = await forgotPassword({ ...ruleForm });
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
     }
-  });
+    message("如果该邮箱已注册，重置链接将发送到邮箱", { type: "success" });
+    onBack();
+  } catch {
+    message("请求失败，请稍后再试", { type: "error" });
+  } finally {
+    loading.value = false;
+  }
 };
 
 function onBack() {
-  useVerifyCode().end();
   useUserStoreHook().SET_CURRENTPAGE(0);
 }
 </script>
 
 <template>
-  <el-form
-    ref="ruleFormRef"
-    :model="ruleForm"
-    :rules="updateRules"
-    size="large"
-  >
+  <el-form ref="ruleFormRef" :model="ruleForm" :rules="rules" size="large">
     <Motion>
-      <el-form-item prop="phone">
+      <el-form-item prop="email">
         <el-input
-          v-model="ruleForm.phone"
+          v-model="ruleForm.email"
           clearable
-          :placeholder="t('login.purePhone')"
-          :prefix-icon="useRenderIcon(Iphone)"
+          placeholder="请输入注册邮箱"
+          :prefix-icon="useRenderIcon(Message)"
         />
       </el-form-item>
     </Motion>
 
     <Motion :delay="100">
-      <el-form-item prop="verifyCode">
-        <div class="w-full flex justify-between">
-          <el-input
-            v-model="ruleForm.verifyCode"
-            clearable
-            :placeholder="t('login.pureSmsVerifyCode')"
-            :prefix-icon="useRenderIcon(Keyhole)"
-          />
-          <el-button
-            :disabled="isDisabled"
-            class="ml-2!"
-            @click="useVerifyCode().start(ruleFormRef, 'phone')"
-          >
-            {{
-              text.length > 0
-                ? text + t("login.pureInfo")
-                : t("login.pureGetVerifyCode")
-            }}
-          </el-button>
-        </div>
-      </el-form-item>
-    </Motion>
-
-    <Motion :delay="150">
-      <el-form-item prop="password">
-        <el-input
-          v-model="ruleForm.password"
-          clearable
-          show-password
-          :placeholder="t('login.purePassword')"
-          :prefix-icon="useRenderIcon(Lock)"
-        />
-      </el-form-item>
-    </Motion>
-
-    <Motion :delay="200">
-      <el-form-item :rules="repeatPasswordRule" prop="repeatPassword">
-        <el-input
-          v-model="ruleForm.repeatPassword"
-          clearable
-          show-password
-          :placeholder="t('login.pureSure')"
-          :prefix-icon="useRenderIcon(Lock)"
-        />
-      </el-form-item>
-    </Motion>
-
-    <Motion :delay="250">
       <el-form-item>
         <el-button
           class="w-full"
           size="default"
           type="primary"
           :loading="loading"
-          @click="onUpdate(ruleFormRef)"
+          @click="onSubmit(ruleFormRef)"
         >
-          {{ t("login.pureDefinite") }}
+          发送重置链接
         </el-button>
       </el-form-item>
     </Motion>
 
-    <Motion :delay="300">
+    <Motion :delay="150">
       <el-form-item>
         <el-button class="w-full" size="default" @click="onBack">
           {{ t("login.pureBack") }}

@@ -91,3 +91,38 @@ export const getMine = (data?: object) => {
 export const getMineLogs = (data?: object) => {
   return http.request<ResultTable>("get", "/mine-logs", { data });
 };
+
+type BaseResult = {
+  code: number;
+  message: string;
+};
+
+/** 退出登录，让刷新令牌失效 */
+export const logoutApi = (data?: object) => {
+  return http.request<BaseResult>("post", "/logout", { data });
+};
+
+/** 账户设置-更新个人信息 */
+export const updateMine = (data?: object) => {
+  return http.request<BaseResult>("post", "/mine", { data });
+};
+
+/** 账户设置-修改密码 */
+export const changePassword = (data?: object) => {
+  return http.request<RefreshTokenResult>("post", "/change-password", { data });
+};
+
+/** 忘记密码，发送重置链接 */
+export const forgotPassword = (data?: object) => {
+  return http.request<BaseResult>("post", "/forgot-password", { data });
+};
+
+/** 通过链接重置密码 */
+export const resetPassword = (data?: object) => {
+  return http.request<BaseResult>("post", "/reset-password", { data });
+};
+
+/** 通过链接激活账号并设置密码 */
+export const activateAccount = (data?: object) => {
+  return http.request<BaseResult>("post", "/activate-account", { data });
+};

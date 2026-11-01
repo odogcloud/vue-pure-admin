@@ -11,6 +11,24 @@ export default [
       showLink: false
     }
   },
+  {
+    path: "/reset-password/:token",
+    name: "ResetPassword",
+    component: () => import("@/views/login/password.vue"),
+    meta: {
+      title: "重置密码",
+      showLink: false
+    }
+  },
+  {
+    path: "/activate-account/:token",
+    name: "ActivateAccount",
+    component: () => import("@/views/login/password.vue"),
+    meta: {
+      title: "激活账号",
+      showLink: false
+    }
+  },
   // 全屏403（无权访问）页面
   {
     path: "/access-denied",

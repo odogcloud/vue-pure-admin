@@ -25,6 +25,11 @@ export default async ({ mode }: ConfigEnv): Promise<UserConfigExport> => {
       host: "0.0.0.0",
       // 本地跨域代理 https://cn.vitejs.dev/config/server-options.html#server-proxy
       proxy: {
+        "^/(login|logout|refresh-token|mine|mine-logs|change-password|forgot-password|reset-password|activate-account)$":
+          {
+            target: "http://127.0.0.1:3000",
+            changeOrigin: true
+          },
         "/channel": {
           target: "http://127.0.0.1:3000",
           changeOrigin: true

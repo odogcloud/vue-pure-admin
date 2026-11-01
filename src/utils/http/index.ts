@@ -50,10 +50,13 @@ class PureHttp {
 
   /** 重连原始请求 */
   private static retryOriginalRequest(config: PureHttpRequestConfig) {
-    return new Promise(resolve => {
-      PureHttp.requests.push((token: string) => {
-        config.headers["Authorization"] = formatToken(token);
-        resolve(config);
+    return new Promise((resolve, reject) => {
+      PureHttp.requests.push({
+        resolve: (token: string) => {
+          config.headers["Authorization"] = formatToken(token);
+          resolve(config);
+        },
+        reject
       });
     });
   }
@@ -72,7 +75,14 @@ class PureHttp {
           return config;
         }
         /** 请求白名单，放置一些不需要`token`的接口（通过设置请求白名单，防止`token`过期后再请求造成的死循环问题） */
-        const whiteList = ["/refresh-token", "/login"];
+        const whiteList = [
+          "/refresh-token",
+          "/login",
+          "/logout",
+          "/forgot-password",
+          "/reset-password",
+          "/activate-account"
+        ];
         return whiteList.some(url => config.url.endsWith(url))
           ? config
           : new Promise(resolve => {
@@ -89,10 +99,11 @@ class PureHttp {
                       .then(res => {
                         const token = res.data.accessToken;
                         config.headers["Authorization"] = formatToken(token);
-                        PureHttp.requests.forEach(cb => cb(token));
+                        PureHttp.requests.forEach(item => item.resolve(token));
                         PureHttp.requests = [];
                       })
-                      .catch(_err => {
+                      .catch(err => {
+                        PureHttp.requests.forEach(item => item.reject(err));
                         PureHttp.requests = [];
                         useUserStoreHook().logOut();
                         message(transformI18n($t("login.pureLoginExpired")), {
@@ -141,6 +152,13 @@ class PureHttp {
       (error: PureHttpError) => {
         const $error = error;
         $error.isCancelRequest = Axios.isCancel($error);
+        if ($error.response?.status === 401) {
+          // 令牌已失效或账号被禁用
+          useUserStoreHook().logOut();
+          message(transformI18n($t("login.pureLoginExpired")), {
+            type: "warning"
+          });
+        }
         // 所有的响应异常 区分来源为取消请求/非取消请求
         return Promise.reject($error);
       }

@@ -11,10 +11,17 @@ import {
   type UserResult,
   type RefreshTokenResult,
   getLogin,
+  logoutApi,
   refreshTokenApi
 } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
-import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
+import {
+  type DataInfo,
+  getToken,
+  setToken,
+  removeToken,
+  userKey
+} from "@/utils/auth";
 
 export const useUserStore = defineStore("pure-user", {
   state: (): userType => ({
@@ -92,8 +99,10 @@ export const useUserStore = defineStore("pure-user", {
           });
       });
     },
-    /** 前端登出（不调用接口） */
+    /** 登出：通知后端作废刷新令牌，接口失败也不影响前端退出 */
     async logOut() {
+      const refreshToken = getToken()?.refreshToken;
+      if (refreshToken) logoutApi({ refreshToken }).catch(() => {});
       this.username = "";
       this.roles = [];
       this.permissions = [];

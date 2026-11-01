@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { formUpload } from "@/api/mock";
+import { uploadFile } from "@/api/channel";
+import { useUserStoreHook } from "@/store/modules/user";
 import { message } from "@/utils/message";
 import { onMounted, reactive, ref } from "vue";
-import { type UserInfo, getMine } from "@/api/user";
+import { type UserInfo, getMine, updateMine } from "@/api/user";
 import type { FormInstance, FormRules } from "element-plus";
 import ReCropperPreview from "@/components/ReCropperPreview";
-import { createFormData, deviceDetection } from "@pureadmin/utils";
+import { deviceDetection } from "@pureadmin/utils";
 import uploadLine from "~icons/ri/upload-line";
 
 defineOptions({
@@ -68,34 +69,44 @@ const handleClose = () => {
 
 const onCropper = ({ blob }) => (cropperBlob.value = blob);
 
-const handleSubmitImage = () => {
-  const formData = createFormData({
-    files: new File([cropperBlob.value], "avatar")
-  });
-  formUpload(formData)
-    .then(({ code }) => {
-      if (code === 0) {
-        message("更新头像成功", { type: "success" });
-        handleClose();
-      } else {
-        message("更新头像失败");
-      }
-    })
-    .catch(error => {
-      message(`提交异常 ${error}`, { type: "error" });
+/** 保存个人信息并同步到页面右上角 */
+const saveProfile = async () => {
+  const { code, message: msg } = await updateMine({ ...userInfos });
+  if (code !== 0) {
+    message(msg, { type: "error" });
+    return false;
+  }
+  useUserStoreHook().SET_NICKNAME(userInfos.nickname);
+  useUserStoreHook().SET_AVATAR(userInfos.avatar);
+  return true;
+};
+
+const handleSubmitImage = async () => {
+  try {
+    const file = new File([cropperBlob.value], "avatar.png", {
+      type: "image/png"
     });
+    const { code, message: msg, data } = await uploadFile(file, "image");
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
+    }
+    userInfos.avatar = data.url;
+    if (await saveProfile()) {
+      message("更新头像成功", { type: "success" });
+      handleClose();
+    }
+  } catch (error) {
+    message(`提交异常 ${error}`, { type: "error" });
+  }
 };
 
 // 更新信息
 const onSubmit = async (formEl: FormInstance) => {
-  await formEl.validate((valid, fields) => {
-    if (valid) {
-      console.log(userInfos);
-      message("更新信息成功", { type: "success" });
-    } else {
-      console.log("error submit!", fields);
-    }
-  });
+  const valid = await formEl.validate().catch(() => false);
+  if (valid && (await saveProfile())) {
+    message("更新信息成功", { type: "success" });
+  }
 };
 
 onMounted(async () => {

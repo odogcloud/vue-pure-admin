@@ -1,4 +1,3 @@
-import "@/utils/sso";
 import Cookies from "js-cookie";
 import { getConfig } from "@/config";
 import NProgress from "@/utils/progress";
@@ -117,6 +116,8 @@ export function resetRouter() {
 
 /** 路由白名单 */
 const whiteList = ["/login"];
+/** 不需要登录的页面前缀 */
+const publicPrefixes = ["/reset-password/", "/activate-account/"];
 
 const { VITE_HIDE_HOME } = import.meta.env;
 
@@ -209,7 +210,10 @@ router.beforeEach((to: ToRouteType, _from) => {
     }
   } else {
     if (to.path !== "/login") {
-      if (whiteList.indexOf(to.path) !== -1) {
+      if (
+        whiteList.indexOf(to.path) !== -1 ||
+        publicPrefixes.some(prefix => to.path.startsWith(prefix))
+      ) {
         return true;
       } else {
         removeToken();
