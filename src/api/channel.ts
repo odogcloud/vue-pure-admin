@@ -24,3 +24,30 @@ export const updateSong = (data?: object) => {
     { data }
   );
 };
+
+/** 删除频道曲库歌曲 */
+export const deleteSong = (data?: object) => {
+  return http.request<{ code: number; message: string }>(
+    "post",
+    "/channel/song-delete",
+    { data }
+  );
+};
+
+/** 获取全部频道歌单 */
+export const getPlaylistOptions = () => {
+  return http.request<{
+    code: number;
+    message: string;
+    data: Array<{ id: number; name: string }>;
+  }>("get", "/channel/playlist-all");
+};
+
+/** 收录歌曲到歌单 */
+export const collectSong = (data?: object) => {
+  return http.request<{ code: number; message: string }>(
+    "post",
+    "/channel/song-collect",
+    { data }
+  );
+};

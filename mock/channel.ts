@@ -15,6 +15,11 @@ const songs = Array.from({ length: 23 }, (_, index) => ({
   createTime: 1767225600000 - index * 86400000
 }));
 
+const playlists = [
+  { id: 1, name: "示例歌单 1" },
+  { id: 2, name: "示例歌单 2" }
+];
+
 export default defineFakeRoute([
   {
     url: "/channel/song-list",
@@ -50,6 +55,37 @@ export default defineFakeRoute([
       song.tags = body.tags;
       song.reason = body.reason;
       song.videoUrl = body.videoUrl;
+      return { code: 0, message: "操作成功" };
+    }
+  },
+  {
+    url: "/channel/song-delete",
+    method: "post",
+    response: ({ body }) => {
+      const index = songs.findIndex(item => item.id === body.id);
+      if (index === -1) {
+        return { code: 1, message: "歌曲不存在" };
+      }
+      songs.splice(index, 1);
+      return { code: 0, message: "操作成功" };
+    }
+  },
+  {
+    url: "/channel/playlist-all",
+    method: "get",
+    response: () => {
+      return { code: 0, message: "操作成功", data: playlists };
+    }
+  },
+  {
+    url: "/channel/song-collect",
+    method: "post",
+    response: ({ body }) => {
+      const song = songs.find(item => item.id === body.id);
+      if (!song) {
+        return { code: 1, message: "歌曲不存在" };
+      }
+      song.inPlaylist = 1;
       return { code: 0, message: "操作成功" };
     }
   }

@@ -24,6 +24,8 @@ const {
   resetForm,
   handleTodo,
   openEdit,
+  openCollect,
+  handleDelete,
   handleSizeChange,
   handleCurrentChange
 } = useLibrary();
@@ -120,19 +122,25 @@ const {
               link
               type="primary"
               :size="size"
-              @click="handleTodo(`收录 ${row.name}`)"
+              @click="openCollect(row)"
             >
               收录到歌单
             </el-button>
-            <el-button
-              link
-              type="danger"
-              :size="size"
-              :icon="useRenderIcon(Delete)"
-              @click="handleTodo(`删除 ${row.name}`)"
+            <el-popconfirm
+              :title="`确认删除 ${row.name} 吗？`"
+              @confirm="handleDelete(row)"
             >
-              删除
-            </el-button>
+              <template #reference>
+                <el-button
+                  link
+                  type="danger"
+                  :size="size"
+                  :icon="useRenderIcon(Delete)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </pure-table>
       </template>

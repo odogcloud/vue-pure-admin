@@ -1,9 +1,16 @@
 import dayjs from "dayjs";
 import editForm from "../form.vue";
+import collectForm from "../collect.vue";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getSongList, updateSong } from "@/api/channel";
+import {
+  collectSong,
+  deleteSong,
+  getPlaylistOptions,
+  getSongList,
+  updateSong
+} from "@/api/channel";
 import type { PaginationProps } from "@pureadmin/table";
 import { h, onMounted, reactive, ref } from "vue";
 
@@ -15,6 +22,7 @@ export function useLibrary() {
   const dataList = ref([]);
   const loading = ref(true);
   const editFormRef = ref();
+  const collectFormRef = ref();
   const pagination = reactive<PaginationProps>({
     total: 0,
     pageSize: 10,
@@ -120,6 +128,56 @@ export function useLibrary() {
     });
   }
 
+  async function openCollect(row) {
+    const { code, message: msg, data } = await getPlaylistOptions();
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
+    }
+    addDialog({
+      title: "收录到歌单",
+      props: {
+        formInline: { id: row.id, name: row.name, playlistId: null }
+      },
+      width: "30%",
+      draggable: true,
+      fullscreen: deviceDetection(),
+      closeOnClickModal: false,
+      contentRenderer: () =>
+        h(collectForm, {
+          ref: collectFormRef,
+          formInline: null,
+          playlists: data
+        }),
+      beforeSure: (done, { options }) => {
+        collectFormRef.value.getRef().validate(async valid => {
+          if (!valid) return;
+          const result = await collectSong(options.props.formInline);
+          if (result.code !== 0) {
+            message(result.message, { type: "error" });
+            return;
+          }
+          message("收录成功", { type: "success" });
+          done();
+          onSearch();
+        });
+      }
+    });
+  }
+
+  async function handleDelete(row) {
+    const { code, message: msg } = await deleteSong({ id: row.id });
+    if (code !== 0) {
+      message(msg, { type: "error" });
+      return;
+    }
+    message("删除成功", { type: "success" });
+    if (dataList.value.length === 1 && pagination.currentPage > 1) {
+      pagination.currentPage -= 1;
+    }
+    onSearch();
+  }
+
   onMounted(onSearch);
 
   return {
@@ -132,6 +190,8 @@ export function useLibrary() {
     resetForm,
     handleTodo,
     openEdit,
+    openCollect,
+    handleDelete,
     handleSizeChange,
     handleCurrentChange
   };
