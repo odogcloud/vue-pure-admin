@@ -3,6 +3,8 @@ import dayjs from "dayjs";
 import { h, reactive, ref } from "vue";
 import { read, utils } from "xlsx";
 import { ElMessageBox } from "element-plus";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import Refresh from "~icons/ep/refresh";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import {
@@ -19,11 +21,13 @@ import {
   releasedOptions,
   statusOptions,
   statusText,
-  submitTypeOptions
+  submitTypeOptions,
+  tagCascaderOptions
 } from "../utils/constants";
 import SongCell from "../components/SongCell.vue";
 import ContactCell from "../components/ContactCell.vue";
 import ImportForm from "../components/ImportForm.vue";
+import { sureOnlyButtons } from "../utils/dialog";
 
 const formRef = ref();
 const importFormRef = ref();
@@ -58,49 +62,49 @@ const { goEdit, openLyrics, openCollect } = useSongActions();
 
 const columns: TableColumnList = [
   { type: "selection", width: 50, label: "勾选列" },
-  { label: "作品", slot: "song", minWidth: 220 },
+  { label: "作品", slot: "song", width: 170 },
   {
     label: "歌曲价格",
     prop: "price",
-    minWidth: 90,
+    width: 100,
     formatter: ({ price }) => (price ? price.toLocaleString() : "-")
   },
-  { label: "确权联系人", slot: "contact", minWidth: 210 },
+  { label: "确权联系人", slot: "contact", width: 170 },
   {
     label: "自定义标签",
     prop: "tags",
-    minWidth: 120,
+    width: 140,
     formatter: ({ tags }) => tags?.join("、") || "-"
   },
   {
     label: "歌曲推荐理由",
     prop: "reason",
-    minWidth: 180,
+    width: 140,
     formatter: ({ reason }) => reason || "-"
   },
-  { label: "音频", slot: "audio", minWidth: 280 },
-  { label: "歌词", slot: "lyrics", minWidth: 100 },
+  { label: "音频", slot: "audio", width: 170 },
+  { label: "歌词", slot: "lyrics", width: 100 },
   {
     label: "是否收录歌单",
     prop: "inPlaylist",
-    minWidth: 130,
+    width: 100,
     formatter: ({ inPlaylist }) =>
       inPlaylist ? "已收录到歌单" : "未收录到歌单"
   },
   {
     label: "状态",
     prop: "status",
-    minWidth: 110,
+    width: 100,
     formatter: ({ status }) => statusText(status)
   },
   {
     label: "加入时间",
     prop: "createTime",
-    minWidth: 170,
+    width: 110,
     formatter: ({ createTime }) =>
       dayjs(createTime).format("YYYY-MM-DD HH:mm:ss")
   },
-  { label: "操作", fixed: "right", width: 120, slot: "operation" }
+  { label: "操作", fixed: "right", width: 100, slot: "operation" }
 ];
 
 function afterCollect() {
@@ -149,9 +153,10 @@ async function openImport() {
   }
   addDialog({
     title: "批量导入",
-    width: "520px",
+    width: "600px",
     draggable: true,
     closeOnClickModal: false,
+    footerButtons: sureOnlyButtons,
     props: {
       formInline: { file: null, playlistId: null }
     },
@@ -200,17 +205,16 @@ async function openImport() {
   <div>
     <el-form
       ref="formRef"
-      :inline="true"
       :model="form"
       label-width="110px"
-      class="search-form"
+      class="channel-search"
     >
       <el-form-item label="作品名称:" prop="name">
         <el-input
           v-model="form.name"
           placeholder="请输入作品名称"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="确权联系人:" prop="contact">
@@ -218,7 +222,7 @@ async function openImport() {
           v-model="form.contact"
           placeholder="请输入确权联系人"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="提交用户类型:" prop="submitType">
@@ -226,7 +230,7 @@ async function openImport() {
           v-model="form.submitType"
           placeholder="请选择提交用户类型"
           clearable
-          class="w-55!"
+          class="w-full!"
         >
           <el-option
             v-for="item in submitTypeOptions"
@@ -240,7 +244,7 @@ async function openImport() {
           v-model="form.released"
           placeholder="请选择是否发行"
           clearable
-          class="w-55!"
+          class="w-full!"
         >
           <el-option
             v-for="item in releasedOptions"
@@ -250,11 +254,14 @@ async function openImport() {
         </el-select>
       </el-form-item>
       <el-form-item label="歌曲标签:" prop="tag">
-        <el-input
+        <el-cascader
           v-model="form.tag"
-          placeholder="请输入歌曲标签"
+          :options="tagCascaderOptions"
+          :props="{ emitPath: false }"
+          filterable
           clearable
-          class="w-55!"
+          placeholder="请输入歌曲标签"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="是否收录歌单:" prop="inPlaylist">
@@ -262,7 +269,7 @@ async function openImport() {
           v-model="form.inPlaylist"
           placeholder="请选择是否收录歌单"
           clearable
-          class="w-55!"
+          class="w-full!"
         >
           <el-option
             v-for="item in inPlaylistOptions"
@@ -276,7 +283,7 @@ async function openImport() {
           v-model="form.edited"
           placeholder="请选择是否已编辑"
           clearable
-          class="w-55!"
+          class="w-full!"
         >
           <el-option
             v-for="item in editedOptions"
@@ -292,7 +299,7 @@ async function openImport() {
           value-format="x"
           start-placeholder="请选择"
           end-placeholder="请选择"
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="作品状态:" prop="status">
@@ -300,7 +307,7 @@ async function openImport() {
           v-model="form.status"
           placeholder="请选择状态"
           clearable
-          class="w-55!"
+          class="w-full!"
         >
           <el-option
             v-for="item in statusOptions"
@@ -309,12 +316,19 @@ async function openImport() {
           />
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-button @click="resetForm(formRef)">重置</el-button>
-        <el-button type="primary" :loading="loading" @click="handleSearch">
+      <div class="channel-search__actions">
+        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
+          重置
+        </el-button>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon('ri/search-line')"
+          :loading="loading"
+          @click="handleSearch"
+        >
           搜索
         </el-button>
-      </el-form-item>
+      </div>
     </el-form>
 
     <div class="flex justify-between mb-4">
@@ -348,7 +362,7 @@ async function openImport() {
       ref="tableRef"
       row-key="id"
       align-whole="left"
-      table-layout="auto"
+      table-layout="fixed"
       :loading="loading"
       :data="dataList"
       :columns="columns"
@@ -399,3 +413,5 @@ async function openImport() {
     </pure-table>
   </div>
 </template>
+
+<style lang="scss" src="../utils/search.scss"></style>

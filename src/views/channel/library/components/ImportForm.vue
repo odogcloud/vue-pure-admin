@@ -61,23 +61,29 @@ defineExpose({ getRef });
     ref="ruleFormRef"
     :model="newFormInline"
     :rules="rules"
-    label-width="120px"
+    label-width="110px"
+    class="channel-dialog-form"
   >
     <el-form-item label="歌曲清单" prop="file">
       <el-upload
         ref="uploadRef"
         action="#"
+        drag
         accept=".xlsx,.xls"
         :auto-upload="false"
         :limit="1"
+        class="channel-upload-import"
         :on-change="handleChange"
         :on-remove="handleRemove"
         :on-exceed="handleExceed"
       >
-        <el-button>选取文件</el-button>
+        <el-button type="primary">选取文件</el-button>
         <template #tip>
-          <div class="el-upload__tip">
-            大小不超过 50MB 格式为 xlsx/xls 的文件
+          <div
+            class="channel-upload-tip text-gray-500 channel-upload-tip--text"
+          >
+            <div>大小不超过 <b>50MB</b></div>
+            <div>格式为 <b>xlsx/xls</b> 的文件</div>
           </div>
         </template>
       </el-upload>
@@ -99,8 +105,15 @@ defineExpose({ getRef });
       </el-select>
     </el-form-item>
 
-    <el-form-item label="下载模版">
-      <el-link type="primary" @click="downloadTemplate">下载模版</el-link>
-    </el-form-item>
+    <el-link
+      type="primary"
+      underline="never"
+      class="ml-4"
+      @click="downloadTemplate"
+    >
+      下载模版
+    </el-link>
   </el-form>
 </template>
+
+<style lang="scss" src="../utils/search.scss"></style>

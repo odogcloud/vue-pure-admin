@@ -4,6 +4,8 @@ import { h, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { utils, writeFile } from "xlsx";
 import { ElMessageBox } from "element-plus";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import Refresh from "~icons/ep/refresh";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
@@ -18,6 +20,7 @@ import { releasedOptions, statusOptions, statusText } from "../utils/constants";
 import SongCell from "../components/SongCell.vue";
 import ContactCell from "../components/ContactCell.vue";
 import WeightForm from "../components/WeightForm.vue";
+import { sureCancelButtons } from "../utils/dialog";
 
 defineOptions({
   name: "ChannelPlaylistDetail"
@@ -60,43 +63,43 @@ const { goEdit, openLyrics, openCollect } = useSongActions();
 
 const columns: TableColumnList = [
   { type: "selection", width: 50, label: "勾选列" },
-  { label: "作品", slot: "song", minWidth: 220 },
+  { label: "作品", slot: "song", width: 170 },
   {
     label: "歌曲价格",
     prop: "price",
-    minWidth: 90,
+    width: 100,
     formatter: ({ price }) => (price ? price.toLocaleString() : "-")
   },
-  { label: "推荐权重", prop: "weight", minWidth: 100, sortable: true },
+  { label: "推荐权重", prop: "weight", width: 100, sortable: true },
   {
     label: "自定义标签",
     prop: "tags",
-    minWidth: 120,
+    width: 140,
     formatter: ({ tags }) => tags?.join("、") || "-"
   },
   {
     label: "歌曲推荐理由",
     prop: "reason",
-    minWidth: 180,
+    width: 140,
     formatter: ({ reason }) => reason || "-"
   },
-  { label: "音频", slot: "audio", minWidth: 280 },
-  { label: "歌词", slot: "lyrics", minWidth: 100 },
-  { label: "确权联系人", slot: "contact", minWidth: 210 },
+  { label: "音频", slot: "audio", width: 170 },
+  { label: "歌词", slot: "lyrics", width: 100 },
+  { label: "确权联系人", slot: "contact", width: 170 },
   {
     label: "状态",
     prop: "status",
-    minWidth: 110,
+    width: 100,
     formatter: ({ status }) => statusText(status)
   },
   {
     label: "加入时间",
     prop: "createTime",
-    minWidth: 170,
+    width: 110,
     formatter: ({ createTime }) =>
       dayjs(createTime).format("YYYY-MM-DD HH:mm:ss")
   },
-  { label: "操作", fixed: "right", width: 170, slot: "operation" }
+  { label: "操作", fixed: "right", width: 120, slot: "operation" }
 ];
 
 function goBack() {
@@ -112,9 +115,10 @@ function resetFilters() {
 function openWeight(row) {
   addDialog({
     title: "修改",
-    width: "480px",
+    width: "500px",
     draggable: true,
     closeOnClickModal: false,
+    footerButtons: sureCancelButtons,
     props: {
       formInline: { weight: row.weight }
     },
@@ -226,17 +230,16 @@ onMounted(() => {
 
     <el-form
       ref="formRef"
-      :inline="true"
       :model="form"
       label-width="110px"
-      class="search-form"
+      class="channel-search"
     >
       <el-form-item label="作品名称:" prop="name">
         <el-input
           v-model="form.name"
           placeholder="请输入作品名称"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="词作者:" prop="lyricist">
@@ -244,7 +247,7 @@ onMounted(() => {
           v-model="form.lyricist"
           placeholder="请输入词作者"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="曲作者:" prop="composer">
@@ -252,7 +255,7 @@ onMounted(() => {
           v-model="form.composer"
           placeholder="请输入曲作者"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="是否发行:" prop="released">
@@ -260,7 +263,7 @@ onMounted(() => {
           v-model="form.released"
           placeholder="请选择是否发行"
           clearable
-          class="w-55!"
+          class="w-full!"
         >
           <el-option
             v-for="item in releasedOptions"
@@ -274,7 +277,7 @@ onMounted(() => {
           v-model="form.tag"
           placeholder="请输入歌曲标签"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="歌曲推荐理由:" prop="reason">
@@ -282,7 +285,7 @@ onMounted(() => {
           v-model="form.reason"
           placeholder="请输入歌曲推荐理由"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="确权联系人:" prop="contact">
@@ -290,7 +293,7 @@ onMounted(() => {
           v-model="form.contact"
           placeholder="请输入确权联系人"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="作品状态:" prop="status">
@@ -298,7 +301,7 @@ onMounted(() => {
           v-model="form.status"
           placeholder="请选择状态"
           clearable
-          class="w-55!"
+          class="w-full!"
         >
           <el-option
             v-for="item in statusOptions"
@@ -307,12 +310,19 @@ onMounted(() => {
           />
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-button @click="resetFilters">重置</el-button>
-        <el-button type="primary" :loading="loading" @click="handleSearch">
+      <div class="channel-search__actions">
+        <el-button :icon="useRenderIcon(Refresh)" @click="resetFilters">
+          重置
+        </el-button>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon('ri/search-line')"
+          :loading="loading"
+          @click="handleSearch"
+        >
           搜索
         </el-button>
-      </el-form-item>
+      </div>
     </el-form>
 
     <div class="mb-4">
@@ -337,7 +347,7 @@ onMounted(() => {
       ref="tableRef"
       row-key="id"
       align-whole="left"
-      table-layout="auto"
+      table-layout="fixed"
       :loading="loading"
       :data="dataList"
       :columns="columns"
@@ -374,3 +384,5 @@ onMounted(() => {
     </pure-table>
   </div>
 </template>
+
+<style lang="scss" src="../utils/search.scss"></style>

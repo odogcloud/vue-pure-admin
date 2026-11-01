@@ -27,3 +27,40 @@ export const statusOptions = [
 
 export const statusText = (status: number) =>
   statusOptions.find(item => item.value === status)?.label ?? "-";
+
+const toOptions = (values: string[]) =>
+  values.map(value => ({ label: value, value }));
+
+export const tagCascaderOptions = [
+  {
+    label: "曲风",
+    value: "genre",
+    children: toOptions([
+      "中国风",
+      "旋律说唱",
+      "情歌",
+      "亲情",
+      "下沉",
+      "治愈",
+      "民谣",
+      "摇滚",
+      "嘻哈说唱",
+      "网络风",
+      "其他"
+    ])
+  },
+  {
+    label: "语种",
+    value: "language",
+    children: toOptions([
+      "普通话",
+      "英语",
+      "粤语",
+      "少数民族语言",
+      "地方方言",
+      "韩语",
+      "小语种",
+      "其他"
+    ])
+  }
+];

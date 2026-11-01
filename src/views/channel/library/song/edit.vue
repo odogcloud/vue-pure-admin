@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import UploadFilled from "~icons/ep/upload-filled";
 import { message } from "@/utils/message";
 import { getSongDetail, getTagOptions, updateSong } from "@/api/channel";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
@@ -120,14 +122,19 @@ onMounted(async () => {
       :model="form"
       :rules="rules"
       label-position="left"
-      label-width="110px"
-      class="max-w-200"
+      label-width="90px"
+      class="channel-dialog-form"
     >
-      <el-form-item label="歌曲名称">
-        <el-input v-model="form.name" disabled placeholder="请输入歌曲名称" />
+      <el-form-item label="歌曲名称：">
+        <el-input
+          v-model="form.name"
+          disabled
+          placeholder="请输入歌曲名称"
+          class="channel-field"
+        />
       </el-form-item>
 
-      <el-form-item label="歌曲标签">
+      <el-form-item label="歌曲标签：">
         <div class="flex flex-wrap gap-2">
           <el-tag v-for="tag in songTags" :key="tag">{{ tag }}</el-tag>
         </div>
@@ -138,17 +145,20 @@ onMounted(async () => {
         v-model:recent-tags="recentTags"
         :hot-tags="hotTags"
         :ai-tags="aiTags"
-        label="自定义标签"
-        hint="请在输入框输入内容后点击【回车】键"
+        stacked
+        label="自定义标签：（请在下方输入内容后点击【回车】键）"
       />
 
-      <el-form-item label="歌曲推荐理由">
-        <div class="w-full">
-          <div class="text-right">
+      <el-form-item label-position="top">
+        <template #label>
+          <div class="flex justify-between channel-field-label">
+            <span>歌曲推荐理由：</span>
             <el-button link type="primary" @click="restoreReason">
               恢复默认
             </el-button>
           </div>
+        </template>
+        <div class="w-full channel-field">
           <el-input
             v-model="form.reason"
             type="textarea"
@@ -159,16 +169,21 @@ onMounted(async () => {
         </div>
       </el-form-item>
 
-      <el-form-item label="上传视频">
+      <el-form-item label="上传视频" label-position="top">
         <div class="w-full">
           <el-upload
             action="#"
+            drag
             accept="video/*"
             :auto-upload="false"
             :show-file-list="false"
+            class="channel-upload-video"
             :on-change="handleVideo"
           >
-            <el-button>选取视频</el-button>
+            <component
+              :is="useRenderIcon(UploadFilled)"
+              class="channel-upload-video__icon"
+            />
           </el-upload>
           <div v-if="form.videoUrl" class="mt-2">
             <video :src="form.videoUrl" controls class="w-80" />
@@ -182,7 +197,7 @@ onMounted(async () => {
         </div>
       </el-form-item>
 
-      <el-form-item>
+      <el-form-item label-width="0">
         <el-button @click="goBack">取消</el-button>
         <el-button type="primary" :loading="saving" @click="handleSubmit">
           确认
@@ -191,3 +206,5 @@ onMounted(async () => {
     </el-form>
   </div>
 </template>
+
+<style lang="scss" src="../utils/search.scss"></style>

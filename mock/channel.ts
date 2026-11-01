@@ -15,7 +15,7 @@ const songs = Array.from({ length: 23 }, (_, index) => ({
   contactName: index % 4 === 3 ? "示例作者" : "示例厂牌",
   contactPhone: index % 2 === 0 ? "" : "（+86） 13800000000",
   contactEmail: "demo@example.com",
-  songTags: ["普通话", index % 2 === 0 ? "流行" : "中国风"],
+  songTags: ["普通话", index % 2 === 0 ? "情歌" : "中国风"],
   tags: [] as string[],
   reason: "",
   defaultReason: "示例默认推荐理由",
@@ -198,9 +198,11 @@ export default defineFakeRoute([
     response: ({ body }) => {
       const ids: number[] = body.ids ?? [];
       if (!ids.length) return fail("请选择歌曲");
-      const playlist = playlists.find(item => item.id === body.playlistId);
-      if (!playlist) return fail("歌单不存在");
-      addSongsToPlaylist(playlist, ids);
+      const targets = playlists.filter(item =>
+        (body.playlistIds ?? []).includes(item.id)
+      );
+      if (!targets.length) return fail("歌单不存在");
+      targets.forEach(item => addSongsToPlaylist(item, ids));
       return ok();
     }
   },

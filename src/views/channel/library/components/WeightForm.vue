@@ -9,8 +9,12 @@ const newFormInline = ref(props.formInline);
 </script>
 
 <template>
-  <el-form :model="newFormInline" label-width="90px">
-    <el-form-item label="推荐权重">
+  <el-form
+    :model="newFormInline"
+    label-width="90px"
+    class="channel-dialog-form"
+  >
+    <el-form-item label="推荐权重：">
       <div class="w-full">
         <el-input-number
           v-model="newFormInline.weight"
@@ -25,3 +29,5 @@ const newFormInline = ref(props.formInline);
     </el-form-item>
   </el-form>
 </template>
+
+<style lang="scss" src="../utils/search.scss"></style>

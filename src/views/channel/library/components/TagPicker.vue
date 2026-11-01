@@ -9,7 +9,9 @@ defineProps<{
   hotTags: string[];
   aiTags?: string[];
   label: string;
-  hint: string;
+  hint?: string;
+  /** 编辑歌曲页：提示同行显示、输入框带字数统计、标题在输入框上方 */
+  stacked?: boolean;
 }>();
 
 const inputValue = ref("");
@@ -38,7 +40,7 @@ async function removeRecent(tag: string) {
 </script>
 
 <template>
-  <el-form-item label="热门标签">
+  <el-form-item label="热门标签：">
     <div class="w-full flex flex-wrap items-center gap-2">
       <el-tag
         v-for="tag in hotTags"
@@ -49,11 +51,13 @@ async function removeRecent(tag: string) {
       >
         {{ tag }}
       </el-tag>
-      <span class="text-gray-500 text-sm">{{ tip }}</span>
+      <span :class="['text-gray-500', stacked ? '' : 'w-full mt-2']">
+        {{ tip }}
+      </span>
     </div>
   </el-form-item>
 
-  <el-form-item v-if="aiTags?.length" label="AI标签">
+  <el-form-item v-if="aiTags?.length" label="AI标签：">
     <div class="w-full flex flex-wrap items-center gap-2">
       <el-tag
         v-for="tag in aiTags"
@@ -64,11 +68,13 @@ async function removeRecent(tag: string) {
       >
         {{ tag }}
       </el-tag>
-      <span class="text-gray-500 text-sm">{{ tip }}</span>
+      <span :class="['text-gray-500', stacked ? '' : 'w-full mt-2']">
+        {{ tip }}
+      </span>
     </div>
   </el-form-item>
 
-  <el-form-item label="最近使用">
+  <el-form-item label="最近使用：">
     <div class="w-full flex flex-wrap items-center gap-2">
       <el-tag
         v-for="tag in recentTags"
@@ -81,21 +87,27 @@ async function removeRecent(tag: string) {
       >
         {{ tag }}
       </el-tag>
-      <span class="text-gray-500 text-sm">{{ tip }}</span>
+      <span :class="['text-gray-500', stacked ? '' : 'w-full mt-2']">
+        {{ tip }}
+      </span>
     </div>
   </el-form-item>
 
-  <el-form-item :label="label" prop="tags">
-    <div class="w-full">
+  <el-form-item
+    :label="label"
+    prop="tags"
+    :label-position="stacked ? 'top' : undefined"
+  >
+    <div :class="stacked ? 'w-full channel-field' : 'w-full'">
       <el-input
         v-model="inputValue"
-        maxlength="14"
-        show-word-limit
-        placeholder="请输入标签"
+        :maxlength="stacked ? 14 : undefined"
+        :show-word-limit="stacked"
+        :placeholder="stacked ? '' : '请输入标签'"
         @keydown.enter.prevent="handleEnter"
       />
-      <div class="text-gray-500 text-sm">{{ hint }}</div>
-      <div class="flex flex-wrap gap-2 mt-1">
+      <div v-if="hint" class="text-gray-500 mt-2 leading-5">{{ hint }}</div>
+      <div v-if="tags.length" class="flex flex-wrap gap-2 mt-2">
         <el-tag v-for="tag in tags" :key="tag" closable @close="removeTag(tag)">
           {{ tag }}
         </el-tag>

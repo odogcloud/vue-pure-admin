@@ -5,6 +5,7 @@ import { addDialog } from "@/components/ReDialog";
 import { collectSongs, getPlaylistOptions } from "@/api/channel";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import CollectForm from "../components/CollectForm.vue";
+import { sureCancelButtons } from "./dialog";
 
 /** 歌曲相关的公共操作 */
 export function useSongActions() {
@@ -77,11 +78,12 @@ export function useSongActions() {
       .filter(Boolean);
     addDialog({
       title: options.title ?? "收录到歌单",
-      width: "520px",
+      width: "500px",
       draggable: true,
       closeOnClickModal: false,
+      footerButtons: sureCancelButtons,
       props: {
-        formInline: { playlistId: recents[0]?.id ?? null }
+        formInline: { playlistIds: recents[0] ? [recents[0].id] : [] }
       },
       contentRenderer: () =>
         h(CollectForm, {
@@ -93,10 +95,10 @@ export function useSongActions() {
       beforeSure: (done, { options: dialog }) => {
         collectFormRef.value.getRef().validate(async valid => {
           if (!valid) return;
-          const form = dialog.props.formInline as { playlistId: number };
+          const form = dialog.props.formInline as { playlistIds: number[] };
           const result = await collectSongs({
             ids,
-            playlistId: form.playlistId
+            playlistIds: form.playlistIds
           });
           if (result.code !== 0) {
             message(result.message, { type: "error" });

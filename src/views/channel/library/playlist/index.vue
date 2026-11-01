@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import dayjs from "dayjs";
 import { h, reactive, ref } from "vue";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import Refresh from "~icons/ep/refresh";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { useUserStoreHook } from "@/store/modules/user";
@@ -13,6 +15,7 @@ import {
 import { useListPage } from "../utils/list";
 import { useSongActions } from "../utils/actions";
 import PlaylistForm from "../components/PlaylistForm.vue";
+import { sureCancelButtons } from "../utils/dialog";
 
 const formRef = ref();
 const editFormRef = ref();
@@ -53,9 +56,10 @@ async function openDialog(row?) {
   }
   addDialog({
     title: row ? "编辑歌单" : "创建歌单",
-    width: "640px",
+    width: "500px",
     draggable: true,
     closeOnClickModal: false,
+    footerButtons: sureCancelButtons,
     props: {
       formInline: {
         id: row?.id,
@@ -107,17 +111,16 @@ async function handleDelete(row) {
   <div>
     <el-form
       ref="formRef"
-      :inline="true"
       :model="form"
-      label-width="90px"
-      class="search-form"
+      label-width="110px"
+      class="channel-search"
     >
       <el-form-item label="歌单名称:" prop="name">
         <el-input
           v-model="form.name"
           placeholder="请输入歌单名称"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="歌单标签:" prop="tag">
@@ -125,7 +128,7 @@ async function handleDelete(row) {
           v-model="form.tag"
           placeholder="请输入歌单标签"
           clearable
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
       <el-form-item label="创建时间:" prop="createTime">
@@ -135,15 +138,22 @@ async function handleDelete(row) {
           value-format="x"
           start-placeholder="请选择"
           end-placeholder="请选择"
-          class="w-55!"
+          class="w-full!"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button @click="resetForm(formRef)">重置</el-button>
-        <el-button type="primary" :loading="loading" @click="handleSearch">
+      <div class="channel-search__actions">
+        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
+          重置
+        </el-button>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon('ri/search-line')"
+          :loading="loading"
+          @click="handleSearch"
+        >
           搜索
         </el-button>
-      </el-form-item>
+      </div>
     </el-form>
 
     <div class="mb-4">
@@ -153,7 +163,7 @@ async function handleDelete(row) {
     <pure-table
       row-key="id"
       align-whole="left"
-      table-layout="auto"
+      table-layout="fixed"
       :loading="loading"
       :data="dataList"
       :columns="columns"
@@ -210,3 +220,5 @@ async function handleDelete(row) {
     </pure-table>
   </div>
 </template>
+
+<style lang="scss" src="../utils/search.scss"></style>

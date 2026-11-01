@@ -61,8 +61,9 @@ defineExpose({ getRef });
     :model="newFormInline"
     :rules="rules"
     label-width="120px"
+    class="channel-dialog-form"
   >
-    <el-form-item label="歌单封面" prop="cover">
+    <el-form-item label="歌单封面：" prop="cover">
       <el-upload
         action="#"
         accept="image/*"
@@ -74,18 +75,13 @@ defineExpose({ getRef });
           v-if="newFormInline.cover"
           :src="newFormInline.cover"
           alt="cover"
-          class="size-24 object-cover rounded-sm"
+          class="channel-cover object-cover"
         />
-        <div
-          v-else
-          class="size-24 flex-c border border-dashed rounded-sm text-2xl text-gray-500"
-        >
-          +
-        </div>
+        <div v-else class="channel-cover channel-cover--empty flex-c">+</div>
       </el-upload>
     </el-form-item>
 
-    <el-form-item label="歌单名称" prop="name">
+    <el-form-item label="歌单名称：" prop="name">
       <el-input
         v-model="newFormInline.name"
         maxlength="50"
@@ -98,11 +94,11 @@ defineExpose({ getRef });
       v-model="newFormInline.tags"
       v-model:recent-tags="recents"
       :hot-tags="hotTags"
-      label="歌单标签"
+      label="歌单标签："
       hint="自定义标签在输入内容后点击【回车】键"
     />
 
-    <el-form-item label="歌单权重">
+    <el-form-item label="歌单权重：">
       <el-input-number
         v-model="newFormInline.weight"
         :min="0"
@@ -111,13 +107,15 @@ defineExpose({ getRef });
       />
     </el-form-item>
 
-    <el-form-item label="歌单推荐理由" prop="reason">
+    <el-form-item label="歌单推荐理由：" prop="reason">
       <el-input
         v-model="newFormInline.reason"
         type="textarea"
-        :rows="3"
+        :rows="4"
         placeholder="请输入歌单推荐理由"
       />
     </el-form-item>
   </el-form>
 </template>
+
+<style lang="scss" src="../utils/search.scss"></style>

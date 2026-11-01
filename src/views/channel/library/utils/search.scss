@@ -1,0 +1,77 @@
+.channel-search {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+
+  &__actions {
+    display: flex;
+    grid-column: -2 / -1;
+    justify-content: flex-end;
+    margin-bottom: 18px;
+  }
+
+  .el-form-item__label {
+    font-weight: 700;
+  }
+}
+
+@media (width <= 768px) {
+  .channel-search {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.channel-dialog-form .el-form-item__label {
+  font-weight: 700;
+}
+
+.channel-upload-tip b {
+  color: var(--el-color-danger);
+}
+
+.channel-upload-import {
+  width: 300px;
+}
+
+.channel-upload-tip--text {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.channel-cover {
+  width: 100px;
+  height: 100px;
+  border-radius: 6px;
+
+  &--empty {
+    font-size: 24px;
+    color: var(--el-text-color-placeholder);
+    border: 1px dashed var(--el-border-color);
+  }
+}
+
+.channel-field {
+  max-width: 430px;
+}
+
+.channel-field-label {
+  width: 430px;
+}
+
+.channel-upload-video {
+  width: 130px;
+
+  .el-upload-dragger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 130px;
+    padding: 0;
+  }
+
+  &__icon {
+    font-size: 48px;
+    color: var(--el-color-primary);
+  }
+}

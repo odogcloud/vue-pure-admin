@@ -4,7 +4,7 @@ import { ref } from "vue";
 type Playlist = { id: number; name: string };
 
 const props = defineProps<{
-  formInline: { playlistId: number | null };
+  formInline: { playlistIds: number[] };
   playlists: Playlist[];
   recents: Playlist[];
 }>();
@@ -12,8 +12,23 @@ const props = defineProps<{
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 const rules = {
-  playlistId: [{ required: true, message: "请选择歌单", trigger: "change" }]
+  playlistIds: [
+    {
+      type: "array" as const,
+      required: true,
+      min: 1,
+      message: "请选择歌单",
+      trigger: "change"
+    }
+  ]
 };
+
+function toggleRecent(id: number) {
+  const ids = newFormInline.value.playlistIds;
+  newFormInline.value.playlistIds = ids.includes(id)
+    ? ids.filter(item => item !== id)
+    : [...ids, id];
+}
 
 function getRef() {
   return ruleFormRef.value;
@@ -28,6 +43,7 @@ defineExpose({ getRef });
     :model="newFormInline"
     :rules="rules"
     label-width="120px"
+    class="channel-dialog-form"
   >
     <el-form-item label="最近加入的歌单">
       <div class="flex flex-wrap gap-2">
@@ -35,8 +51,10 @@ defineExpose({ getRef });
           v-for="item in recents"
           :key="item.id"
           class="cursor-pointer"
-          :effect="newFormInline.playlistId === item.id ? 'dark' : 'light'"
-          @click="newFormInline.playlistId = item.id"
+          :effect="
+            newFormInline.playlistIds.includes(item.id) ? 'dark' : 'light'
+          "
+          @click="toggleRecent(item.id)"
         >
           {{ item.name }}
         </el-tag>
@@ -44,9 +62,10 @@ defineExpose({ getRef });
       </div>
     </el-form-item>
 
-    <el-form-item label="选择收录的歌单" prop="playlistId">
+    <el-form-item label="选择收录的歌单" prop="playlistIds">
       <el-select
-        v-model="newFormInline.playlistId"
+        v-model="newFormInline.playlistIds"
+        multiple
         placeholder="请选择"
         class="w-full"
       >
@@ -60,3 +79,5 @@ defineExpose({ getRef });
     </el-form-item>
   </el-form>
 </template>
+
+<style lang="scss" src="../utils/search.scss"></style>
