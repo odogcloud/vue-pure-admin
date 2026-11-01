@@ -13,6 +13,7 @@ type ResultTable = Result<{
   currentPage?: number;
   playlistName?: string;
   canCompanyReview?: boolean;
+  allChannels?: boolean;
 }>;
 
 const post = <T = Result>(url: string, data?: object) =>

@@ -45,6 +45,13 @@ const importFormRef = ref();
 const songFormRef = ref();
 const canWrite = hasPerms("channel:write");
 const canCompanyReview = ref(false);
+/** 超级管理员在默认频道查看所有频道的歌曲 */
+const allChannels = ref(false);
+const DEFAULT_CHANNEL_ID = 1;
+// 歌单属于频道，只能收录当前频道的歌曲
+const canCollect = row =>
+  row.reviewStatus === "approved" &&
+  (!allChannels.value || row.channelId === DEFAULT_CHANNEL_ID);
 const canSubmit = row => ["draft", "rejected"].includes(row.reviewStatus);
 const form = reactive({
   name: "",
@@ -75,12 +82,19 @@ const {
   clearSelection
 } = useListPage(form, getSongList, data => {
   canCompanyReview.value = Boolean(data?.canCompanyReview);
+  allChannels.value = Boolean(data?.allChannels);
 });
 const { goEdit, openLyrics, openCollect } = useSongActions();
 const { onAudioPlay, onAudioStop } = useListenReport();
 
 const columns: TableColumnList = [
   { type: "selection", width: 50, label: "勾选列" },
+  {
+    label: "所属频道",
+    prop: "channelName",
+    width: 120,
+    hide: () => !allChannels.value
+  },
   { label: "作品", slot: "song", width: 170 },
   {
     label: "歌曲价格",
@@ -536,8 +550,7 @@ async function openImport() {
           type="primary"
           plain
           :disabled="
-            !selected.length ||
-            selected.some(item => item.reviewStatus !== 'approved')
+            !selected.length || selected.some(item => !canCollect(item))
           "
           @click="collectSelected"
         >
@@ -645,6 +658,7 @@ async function openImport() {
           <template v-else-if="row.reviewStatus === 'approved'">
             <el-button link type="primary" @click="goEdit(row)">编辑</el-button>
             <el-button
+              v-if="canCollect(row)"
               link
               type="primary"
               class="ml-0!"
